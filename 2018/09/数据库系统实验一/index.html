@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.49 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="liu jianhao">
+<meta name="keywords" content="">
+<meta name="description" content="CMU-15-445数据库系统实验一缓冲池管理器
+">
+
+
+<meta property="og:description" content="CMU-15-445数据库系统实验一缓冲池管理器
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库系统实验一">
+<meta name="twitter:title" content="数据库系统实验一">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/09/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80/">
+<meta property="og:site_name" content="liu-jianhao&#39;s Blog">
+<meta property="og:description" content="CMU-15-445数据库系统实验一缓冲池管理器
+">
+<meta name="twitter:description" content="CMU-15-445数据库系统实验一缓冲池管理器
+">
+<meta property="og:locale" content="en-us">
+
+  
+    <meta property="article:published_time" content="2018-09-20T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2018-09-20T00:00:00">
+  
+  
+  
+  
+    
+      <meta property="article:tag" content="CMU-15-445 数据库">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+  <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+
+
+    <title>数据库系统实验一</title>
+
+    <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/09/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://liu-jianhao.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="1">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
+  </div>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="1">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://liu-jianhao.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+        </a>
+        <h4 class="sidebar-profile-name">liu jianhao</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/liu-jianhao" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="1"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      数据库系统实验一
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-09-20T00:00:00Z">
+        
+  September 20, 2018
+
+      </time>
+    
+    
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>CMU-15-445数据库系统实验一缓冲池管理器
+</p>
+
+<p>之前选课的时候没抢到数据库系统(非科班)，没关系，在网上找到了这个CMU的数据库系统的课程，还有教学视频在｀YouTube`上，很良心，虽然感觉讲的一般般，但我主要是做其中的项目，所以也就没什么影响。</p>
+
+<p>实验使用<code>C++</code>，很对我胃口(不会Java= =)，这门课的实验有一个特点，就是实验是层层递进的，要做实验二就必须完成实验一，因为要用到实验一的代码</p>
+
+<p>话不多说，开始实验一吧</p>
+
+<h1 id="实验一-缓冲池">实验一：缓冲池</h1>
+
+<p><a href="https://github.com/liu-jianhao/CMU-15-445/tree/master/Lab">实验代码</a></p>
+
+<p>在存储管理器中实现缓冲池。缓冲池负责将物理页面从主存储器来回移动到磁盘。</p>
+
+<p>它允许DBMS支持大于系统可用内存量的数据库。它的操作对系统中的其他部分是透明的。</p>
+
+<p>例如，系统使用其唯一标识符（page_id）向缓冲池请求页面，并且它不知道该页面是否已经在内存中，或者系统是否必须从磁盘检索它。</p>
+
+<p>你的实现需要是线程安全的。多个线程将同时访问内部数据结构，因此您需要确保其关键部分受锁存器保护（这些在操作系统中称为“锁”）。</p>
+
+<p>需要在存储管理器中实现以下三个组件：
+1. 可扩展的哈希表
+2. LRU页面替换政策
+3. 缓冲池管理器</p>
+
+<h2 id="可扩展的哈希表">可扩展的哈希表</h2>
+
+<h3 id="简介">简介</h3>
+
+<p>可扩展哈希表是一种动态哈希表，也就是说，它的桶的个数是可以增加的</p>
+
+<h3 id="要求">要求</h3>
+
+<p>你将构建一个通用哈希表，该表使用无序桶来存储唯一的键/值对。你的哈希表必须支持插入/删除键/值条目而不指定表的最大大小的功能。你的表需要根据需要自动增大，但不需要缩小它。也就是说，不需要实现对缩小或压缩哈希表的支持。还需要支持检查哈希表中是否存在密钥并返回其对应的值。</p>
+
+<h3 id="特性">特性</h3>
+
+<ol>
+<li>相比较静态哈希表，桶不再是数据块本身，而是用一个指向块的指针数组来表示桶</li>
+<li>指针数组能增长，它的长度总是2的幂，因此数组每增长一次，桶的数目就翻倍</li>
+<li>不过并非每个桶都有一个数据块，如果某些桶中的所有记录可以放在一个块中，那么这些桶可以共享一个块</li>
+<li>哈希函数h为每个键计算出一个K位二进制序列，该K足够大，比如32。但是桶的数目总是使用从序列第一位或者最后一位算起的若干位，此位数小于K，比如说i位。也就是说，当i是使用的位数时，桶数组将有2的i次方个项</li>
+</ol>
+
+<h3 id="实验中的难点">实验中的难点</h3>
+
+<ol>
+<li>要理解全局的<code>depth</code>和局部(桶)的<code>depth</code>的作用，用<code>HashKey</code>找位置时要仔细</li>
+<li>实验中最难的操作就是插入了，因为要考虑到当某个桶里的数据满的时候，就要分裂，即增加局部的<code>depth</code>，然后重新分配桶的<code>map</code>，分裂后桶的数目要加倍，全局的<code>depth</code>要一直大于等于局部的<code>depth</code></li>
+</ol>
+
+<h2 id="lru页面替换政策">LRU页面替换政策</h2>
+
+<h3 id="简介-1">简介</h3>
+
+<p>内存管理的一种页面置换算法，对于在内存中但又不用的数据块（内存块）叫做LRU，操作系统会根据哪些数据属于LRU而将其移出内存而腾出空间来加载另外的数据。</p>
+
+<p>LRU是Least Recently Used的缩写，即最近最少使用，常用于页面置换算法，是为虚拟页式存储管理服务的。</p>
+
+<h3 id="要求-1">要求</h3>
+
+<p>该组件负责跟踪缓冲池中页面的使用情况。你将<code>LRUReplacer</code>在<code>src/include/buffer/lru_replacer.h</code>中实现一个新的子类，并在<code>src/buffer/lru_replacer.cpp</code>中实现相应的实现文件。这是一个通用类，用于跟踪何时使用它跟踪的元素。</p>
+
+<h3 id="实验中的难点-1">实验中的难点</h3>
+
+<ol>
+<li>要选好数据结构，我选择的数据结构是哈希表，即STL中的<code>unordered_map</code>，键是页面，值是一个节点，节点我用一个双向链表连接起来</li>
+<li>剩下的工作就很简单了</li>
+</ol>
+
+<h3 id="q-a">Q&amp;A</h3>
+
+<h4 id="为什么要用哈希表">为什么要用哈希表？</h4>
+
+<p>虽然说实现LRU算法虽简单的数据结构是队列，但当你插入一个页面时，如果该页面是之前就已经在队列中的，那么就要找出之前已经存在队列中的那个页面，然后删除，在重新插入在队列尾部，找到并删除这个操作对于队列来说明显不合适，哈希表能快速查找并删除</p>
+
+<h4 id="为什么节点要用双向链表连接">为什么节点要用双向链表连接？</h4>
+
+<p>既然已经决定了要用双向链表，那么怎么知道那个页面是最近未使用呢？那必定要用一个类似队列的东西，选择链表最为合适，然后为什么要用双向呢？是由于实验要求要支持<code>Erase</code>操作，即指定某个页面并删除，虽然用单向链表能找到要删除的页面，但是要删除一条链表中的某个节点，必须要知道前后的节点才能删除，因此要保存指向前一个节点的指针</p>
+
+<h2 id="缓冲池管理器">缓冲池管理器</h2>
+
+<h3 id="要求-2">要求</h3>
+
+<p>缓冲池管理器负责从中获取数据库页面DiskManager并将其存储在内存中。该<code>BufferPoolManager</code>也可以写脏页到磁盘时，它明确地指示这样做或何时需要移除一个页面，或产生新的一页。</p>
+
+<p>系统中的所有内存页面都由<code>Page</code>对象表示。在<code>BufferPoolManager</code>并不需要了解这些网页的内容。但是，你必须了解<code>Page</code>对象只是缓冲池中内存的容器，因此并不特定于唯一页面。也就是说，每个<code>Page</code>对象都包含一块内存，DiskManager用作复制从磁盘读取的物理页面内容的位置。当它来回移动到磁盘时，<code>BufferPoolManager</code>它将重用相同的Page对象来存储数据。这意味着同一<code>Page</code>对象在整个系统生命周期中可能包含不同的物理页面。该<code>Page</code>对象的<code>IDENTIFER（page_id）</code>跟踪它包含的物理页面; 如果<code>Page</code>对象不包含物理页面，则<code>page_id</code>必须将其设置为<code>INVALID_PAGE_ID</code>。</p>
+
+<p>每个<code>Page</code>对象还维护一个计数器，用于“固定”该页面的线程数。<code>BufferPoolManager</code>不能释放<code>Page</code>被钉住的东西。每个<code>Page</code>对象还会跟踪它是否脏。在取消固定页面时，记录页面是否被修改是您的工作。<code>BufferPoolManager</code>必须写一个肮脏的内容Page背到磁盘之前，该对象可重复使用。</p>
+
+<p><code>BufferPoolManager</code>实现将使用在先前步骤中创建的<code>ExtendibleHashTable</code>和<code>LRUReplacer</code>。它将使用<code>ExtendibleHashTable</code>映射<code>page_id</code>到<code>Page</code>对象的表。它还将使用它<code>LRUReplacer</code>来跟踪何时Page访问对象，以便它可以决定在必须释放帧以从磁盘复制新物理页面时腾出哪一个。</p>
+
+<h3 id="实验中的难点-2">实验中的难点</h3>
+
+<ol>
+<li>需要了解<code>DiskManager</code>和<code>Page</code></li>
+<li>剩下的实现只要按照注释中的解释就很简单了</li>
+</ol>
+
+<h2 id="实验一总结">实验一总结</h2>
+
+<p>总的来说三个子项目的难度排序大概是<code>哈希表&gt;管理器&gt;LRU</code>，第一个我认为是最难的，我花的时间也最长</p>
+
+<p>虽然过程磕磕绊绊，但也总算是完成了第一个实验，准备着手第二个实验了</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">TAGGED IN</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-445-%E6%95%B0%E6%8D%AE%E5%BA%93/">CMU-15-445 数据库</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2018 liu jianhao. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="1">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="1">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+    
+    <h4 id="about-card-name">liu jianhao</h4>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Your job title
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        Shen zhen
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="Search" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center">no post found</div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/09/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80/">
+                <h3 class="media-heading">数据库系统实验一</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Sep 9, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>CMU-15-445数据库系统实验一缓冲池管理器
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero="no post found"
+         data-message-one="1 post found"
+         data-message-other="{n} posts found">
+         1 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://liu-jianhao.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://liu-jianhao.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/09\/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80\/';
+          
+            this.page.identifier = '\/2018\/09\/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'hugo-tranquilpeak-theme';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
