@@ -8,18 +8,22 @@
 <meta name="generator" content="Hugo 0.49 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="">
+<meta name="description" content="为完成一个HTTP请求的解析器做准备
+">
 
 
-<meta property="og:description" content="">
+<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
+">
 <meta property="og:type" content="article">
 <meta property="og:title" content="flex &amp; bsion">
 <meta name="twitter:title" content="flex &amp; bsion">
 <meta property="og:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
 <meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="">
-<meta name="twitter:description" content="">
+<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
+">
+<meta name="twitter:description" content="为完成一个HTTP请求的解析器做准备
+">
 <meta property="og:locale" content="en-us">
 
   
@@ -34,7 +38,7 @@
     
       <meta property="article:tag" content="CMU-15-441">
     
-      <meta property="article:tag" content="编译">
+      <meta property="article:tag" content="编译原理">
     
   
 
@@ -207,7 +211,8 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p></p>
+              <p>为完成一个HTTP请求的解析器做准备
+</p>
 
 <p>在做CMU-15-441(计算机网络)的第一个作业的第二部分时，要用到<code>lex</code>和<code>yacc</code>完成对<code>HTTP</code>请求的解析器，由于没有学过编译原理，所以对<code>lex</code>和<code>yacc</code>一窍不通，所以先学习它们的使用</p>
 
@@ -272,17 +277,10 @@ $ ./a.out &lt; lex.yy.c
 
 <h2 id="结合bison">结合bison</h2>
 
+<h3 id="calcultor-l">calcultor.l</h3>
+
 <pre><code>%{
-    enum yytokentype {
-        NUMBER = 258,
-        ADD = 259,
-        SUB = 260,
-        MUL = 261,
-        DIV = 262,
-        ABS = 263,
-        EOL = 264,
-    };
-    int yylval;
+#include &quot;calculator.tab.h&quot;
 %}
 %%
 &quot;+&quot;     { return ADD; }
@@ -290,27 +288,109 @@ $ ./a.out &lt; lex.yy.c
 &quot;*&quot;     { return MUL; }
 &quot;/&quot;     { return DIV; }
 &quot;|&quot;     { return ABS; }
+&quot;(&quot;     { return OP; }
+&quot;)&quot;     { return CP; }
+&quot;//&quot;.*  { }
 [0-9]+  { yylval = atoi(yytext); return NUMBER; }
 \n      { return EOL; }
 [ \t]   { }
 .       { printf(&quot;Mystery character %s\n&quot;, yytext); }
 %%
-main(int argc, char **argv)
-{
-    int tok;
-
-    while(tok = yylex())
-    {
-        printf(&quot;%d&quot;, tok);
-        if(tok == NUMBER)
-            printf(&quot; = %d\n&quot;, yylval);
-        else
-            printf(&quot;\n&quot;);
-    }
-}
 </code></pre>
 
 <p>大多数词法分析器用来获得一个记号流，这样可以方便语法分析器处理。每当一个程序需要一个记号时，它调用<code>yylex()</code>来读取一小部分输入然后返回相应的记号。如果一个模式不能够产生一个用于调用程序且不可以返回的记号时，词法分析器会在这次<code>yylex()</code>的调用中继续分析接下来的输入字符。</p>
+
+<h3 id="calcultor-y">calcultor.y</h3>
+
+<pre><code>%{
+#include &lt;stdio.h&gt;
+%}
+
+%token NUMBER
+%token ADD SUB MUL DIV ABS
+%token EOL
+%token OP CP
+
+%%
+calclist:
+    | calclist exp EOL { printf(&quot;= %d\n&quot;, $2); }
+    ;
+
+exp: factor
+    | exp ADD factor { $$ = $1 + $3; }
+    | exp SUB factor { $$ = $1 - $3; }
+    ;
+
+factor: term
+    | factor MUL term { $$ = $1 * $3; }
+    | factor DIV term { $$ = $1 / $3; }
+    ;
+
+term: NUMBER
+    | ABS term { $$ = $2 &gt;= 0 ? $2 : -$2; }
+    | OP exp CP { $$ = $2; }
+    ;
+%%
+main(int argc, char **argv)
+{
+    yyparse();
+}
+yyerror(char *s)
+{
+    fprintf(stderr, &quot;error: %s\n&quot;, s);
+}
+
+</code></pre>
+
+<p><code>bison</code>程序包含了与<code>flex</code>程序相同的三部分结构：
+1. 声明部分
+    + 会被原样拷贝到目标分析程序开头的C代码
+    + <code>%token</code>记号声明告诉<code>bison</code>在语法分析程序中记号的名称(一般用大写字母)
+2. 规则部分
+    + 利用<code>BNF</code>定义的规则，&rdquo;:&ldquo;为&rdquo;是&rdquo;，&rdquo;|&ldquo;为&rdquo;或者&rdquo;
+3. C代码部分</p>
+
+<p>每个<code>bison</code>规则中的语法符号都有一个语义值，目标符号(冒号左边的语法符号)的值在动作中代码用<code>$$</code>代替，右边语法符号的语义值依次为<code>$1</code>、<code>$2</code>，直到这条规则结束。</p>
+
+<p>当词法分析器返回记号时，记号值总是存储在<code>yyval</code>里，其他语法符号的语义值则在语法分析器的规则里进行设置</p>
+
+<h3 id="编译运行">编译运行</h3>
+
+<p>Makeifle：</p>
+
+<pre><code>CC=gcc
+LEX=flex
+YACC=bison
+OBJECT=calculator
+
+$(OBJECT): lex.yy.c calculator.tab.c
+	$(CC) lex.yy.c calculator.tab.c -o $(OBJECT) -lfl
+
+lex.yy.c: calculator.l
+	$(LEX) calculator.l
+
+calculator.tab.c: calculator.y
+	$(YACC) -d calculator.y
+
+clean:
+	rm -rf $(OBJECT) *tab* lex.yy.c
+</code></pre>
+
+<pre><code>$ make
+flex calculator.l
+bison -d calculator.y
+gcc lex.yy.c calculator.tab.c -o calculator -lfl
+$ ./calculator 
+10 + 20 - 1
+= 29
+a - 2
+Mystery character a
+error: syntax error
+</code></pre>
+
+<h1 id="总结">总结</h1>
+
+<p>现在我已经大概了解了<code>flex</code>和<code>bison</code>，感觉不难，由于和C语言结合的很紧，所以很容易上手，接下来就准备着手完成HTTP请求的解析器了</p>
               
             </div>
           </div>
@@ -324,7 +404,7 @@ main(int argc, char **argv)
                     
   <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-441/">CMU-15-441</a>
 
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E7%BC%96%E8%AF%91/">编译</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">编译原理</a>
 
                   </div>
                 
@@ -516,7 +596,8 @@ main(int argc, char **argv)
                   Sep 9, 2018
                 </span>
               </span>
-              <div class="media-content hide-xs font-merryweather"><p></p></div>
+              <div class="media-content hide-xs font-merryweather"><p>为完成一个HTTP请求的解析器做准备
+</p></div>
             </div>
             <div style="clear:both;"></div>
             <hr>
