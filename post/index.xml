@@ -31,5 +31,15 @@
 &lt;/p&gt;</description>
     </item>
     
+    <item>
+      <title>MIT6.828操作系统实验—之启动PC</title>
+      <link>https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/</link>
+      <pubDate>Thu, 30 Aug 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/</guid>
+      <description>&lt;p&gt;主要是学习启动一个操作系统前的引导加载程序，学会使用gdb调试
+&lt;/p&gt;</description>
+    </item>
+    
   </channel>
 </rss>
