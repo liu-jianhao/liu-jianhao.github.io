@@ -8,37 +8,35 @@
 <meta name="generator" content="Hugo 0.49 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="为完成一个HTTP请求的解析器做准备
+<meta name="description" content="C&#43;&#43;设计模式简单总结
 ">
 
 
-<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
+<meta property="og:description" content="C&#43;&#43;设计模式简单总结
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="flex &amp; bsion">
-<meta name="twitter:title" content="flex &amp; bsion">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
+<meta property="og:title" content="C&#43;&#43;设计模式">
+<meta name="twitter:title" content="C&#43;&#43;设计模式">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
+<meta property="og:description" content="C&#43;&#43;设计模式简单总结
 ">
-<meta name="twitter:description" content="为完成一个HTTP请求的解析器做准备
+<meta name="twitter:description" content="C&#43;&#43;设计模式简单总结
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-09-27T00:00:00">
+    <meta property="article:published_time" content="2018-10-07T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-09-27T00:00:00">
+    <meta property="article:modified_time" content="2018-10-07T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="CMU-15-441">
-    
-      <meta property="article:tag" content="编译原理">
+      <meta property="article:tag" content="设计模式">
     
   
 
@@ -59,14 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>flex &amp; bsion</title>
+    <title>C&#43;&#43;设计模式</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/09/flex--bsion/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -192,15 +190,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      flex &amp; bsion
+      C&#43;&#43;设计模式
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-09-27T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-10-07T00:00:00Z">
         
-  September 27, 2018
+  October 7, 2018
 
       </time>
     
@@ -211,188 +209,173 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>为完成一个HTTP请求的解析器做准备
+              <p>C++设计模式简单总结
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>在做CMU-15-441(计算机网络)的第一个作业的第二部分时，要用到<code>lex</code>和<code>yacc</code>完成对<code>HTTP</code>请求的解析器，由于没有学过编译原理，所以对<code>lex</code>和<code>yacc</code>一窍不通，所以先学习它们的使用</p>
+<p>国庆七天很快就过了，在家没学到什么，只简单地学习了23种设计模式，但趁热打铁，先写一些笔记，方便以后复习。</p>
 
-<h1 id="flex-和-bsion-简介">flex 和 bsion 简介</h1>
+<h1 id="什么是设计模式">什么是设计模式</h1>
 
-<p><code>flex</code>和<code>bison</code>是用来生成程序的工具，它们所生成的程序能够处理结构化输入。最初<code>flex</code>和<code>bsion</code>是用来生成编译器的，但在其他领域也非常有用。</p>
+<p>“每一个模式描述了一个在我们周围不断重复发生的问题，以及该问题的解决方案的核心。这样，你就能一次又一次地使用该方案而不必做重复劳动”。
+——Christopher Alexander</p>
 
-<h2 id="词法分析和语法分析">词法分析和语法分析</h2>
+<h1 id="如何解决复杂性">如何解决复杂性？</h1>
 
-<p>词法分析：lexical analysis
-+ 把输入分割成一个个有意义的词块，称为记号(token)</p>
+<ul>
+<li>分解
 
-<p>语法分析：syntax analysis
-+ 确定这些记号是如何彼此关联</p>
+<ul>
+<li>人们面对复杂性有一个常见的做法：即分而治之，将大问题分解为多个小问题，将复杂问题分解为多个简单问题。</li>
+</ul></li>
+<li>抽象
 
-<p>例如</p>
+<ul>
+<li>更高层次来讲，人们处理复杂性有一个通用的技术，即抽象。由于不能掌握全部的复杂对象，我们选择忽视它的非本质细节，而去处理泛化和理想化了的对象模型。
+<br />
+<br /></li>
+</ul></li>
+</ul>
 
-<pre><code>alpha = beta +　gamma;
-</code></pre>
+<h1 id="面向对象设计原则">面向对象设计原则</h1>
 
-<p>词法分析器把这段代码分解成：<code>alpha</code>、<code>=</code>、<code>beta</code>、<code>+</code>、<code>gamma</code>、<code>；</code>。</p>
+<ol>
+<li>依赖倒置原则（DIP）
 
-<p>接着语法分析器确定<code>beta+gamma</code>是一个表达式，而这个表达式被献给<code>alpha</code>。</p>
+<ul>
+<li>高层模块(稳定)不应该依赖于低层模块(变化)，二者都应该依赖于抽象(稳定) 。</li>
+<li>抽象(稳定)不应该依赖于实现细节(变化) ，实现细节应该依赖于抽象(稳定)。</li>
+</ul></li>
+<li>开放封闭原则（OCP）
 
-<h2 id="第一个flex程序-类wc">第一个flex程序：类wc</h2>
+<ul>
+<li>对扩展开放，对更改封闭。</li>
+<li>类模块应该是可扩展的，但是不可修改。</li>
+</ul></li>
+<li>单一职责原则（SRP）
 
-<pre><code>%{
-int chars = 0;
-int words = 0;
-int lines = 0;
-%}
-%%
-[a-zA-Z]+   { words++; chars += strlen(yytext); }
-\n          { chars++; lines++; }
-.           { chars++; }
-%%
-main(int argc, char **argv)
-{
-    yylex();
-    printf(&quot;%8d%8d%8d\n&quot;, lines, words ,chars);
-}
-</code></pre>
+<ul>
+<li>一个类应该仅有一个引起它变化的原因。</li>
+<li>变化的方向隐含着类的责任。</li>
+</ul></li>
+<li>Liskov 替换原则（LSP）
 
-<p>整个<code>flex</code>程序包含三个部分：
-1. 声明和选项设置
-    + <code>%{</code> 和 <code>%}</code>之间的代码
-2. 模式和动作
-    + 每个模式处在第一行的开头，接着是模式匹配时所需要执行的C代码(用<code>{}</code>括住)
-    + 注意，模式必须在行首出现，<code>flex</code>认为以空白开始的行都是代码而把它们照抄到生成的C代码中
-    + <code>[a-zA-Z]+</code> 匹配一个单词
-    + <code>\n</code> 匹配换行符
-    + <code>.</code> 匹配任意一个字符
-    + 在任意一个<code>flex</code>动作中，变量<code>yytext</code>总是被设为指向本次匹配的输入文本
-3. 会被拷贝到生成的词法分析器里面的C代码
-    + 最后的C代码是主程序，负责调用<code>flex</code>提供的词法分析例程<code>yylex()</code>，并输出结果</p>
+<ul>
+<li>子类必须能够替换它们的基类(IS-A)。</li>
+<li>继承表达类型抽象。</li>
+</ul></li>
+<li>接口隔离原则（ISP）
 
-<pre><code class="language-shell">$ flex wc.l
-$ gcc lex.yy.c -lfl
-$ ./a.out &lt; lex.yy.c
-    1754    6601   44324
-</code></pre>
+<ul>
+<li>不应该强迫客户程序依赖它们不用的方法。</li>
+<li>接口应该小而完备。</li>
+</ul></li>
+<li>优先使用对象组合，而不是类继承
 
-<h2 id="结合bison">结合bison</h2>
+<ul>
+<li>类继承通常为“白箱复用”，对象组合通常为“黑箱复用” 。</li>
+<li>继承在某种程度上破坏了封装性，子类父类耦合度高。</li>
+<li>而对象组合则只要求被组合的对象具有良好定义的接口，耦合度低。</li>
+</ul></li>
+<li>封装变化点
 
-<h3 id="calcultor-l">calcultor.l</h3>
+<ul>
+<li>使用封装来创建对象之间的分界层，让设计者可以在分界层的一侧进行修改，而不会对另一侧产生不良的影响，从而实现层次间的松耦合。</li>
+</ul></li>
+<li>针对接口编程，而不是针对实现编程
 
-<pre><code>%{
-#include &quot;calculator.tab.h&quot;
-%}
-%%
-&quot;+&quot;     { return ADD; }
-&quot;-&quot;     { return SUB; }
-&quot;*&quot;     { return MUL; }
-&quot;/&quot;     { return DIV; }
-&quot;|&quot;     { return ABS; }
-&quot;(&quot;     { return OP; }
-&quot;)&quot;     { return CP; }
-&quot;//&quot;.*  { }
-[0-9]+  { yylval = atoi(yytext); return NUMBER; }
-\n      { return EOL; }
-[ \t]   { }
-.       { printf(&quot;Mystery character %s\n&quot;, yytext); }
-%%
-</code></pre>
+<ul>
+<li>不将变量类型声明为某个特定的具体类，而是声明为某个接口。</li>
+<li>客户程序无需获知对象的具体类型，只需要知道对象所具有的接口。</li>
+<li>减少系统中各部分的依赖关系，从而实现“高内聚、松耦合”的类型设计方案。</li>
+</ul></li>
+</ol>
 
-<p>大多数词法分析器用来获得一个记号流，这样可以方便语法分析器处理。每当一个程序需要一个记号时，它调用<code>yylex()</code>来读取一小部分输入然后返回相应的记号。如果一个模式不能够产生一个用于调用程序且不可以返回的记号时，词法分析器会在这次<code>yylex()</code>的调用中继续分析接下来的输入字符。</p>
+<h1 id="从封装变化角度对模式分类">从封装变化角度对模式分类</h1>
 
-<h3 id="calcultor-y">calcultor.y</h3>
+<h2 id="组件协作">组件协作：</h2>
 
-<pre><code>%{
-#include &lt;stdio.h&gt;
-%}
+<ul>
+<li><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Template%20Method">Template Method</a></li>
+<li><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Observer">Observer/Event</a></li>
 
-%token NUMBER
-%token ADD SUB MUL DIV ABS
-%token EOL
-%token OP CP
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Strategy">Strategy</a></p>
 
-%%
-calclist:
-    | calclist exp EOL { printf(&quot;= %d\n&quot;, $2); }
-    ;
+<h2 id="单一职责">单一职责：</h2></li>
 
-exp: factor
-    | exp ADD factor { $$ = $1 + $3; }
-    | exp SUB factor { $$ = $1 - $3; }
-    ;
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Decorator">Decorator</a></p></li>
 
-factor: term
-    | factor MUL term { $$ = $1 * $3; }
-    | factor DIV term { $$ = $1 / $3; }
-    ;
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Bridge">Bridge</a></p>
 
-term: NUMBER
-    | ABS term { $$ = $2 &gt;= 0 ? $2 : -$2; }
-    | OP exp CP { $$ = $2; }
-    ;
-%%
-main(int argc, char **argv)
-{
-    yyparse();
-}
-yyerror(char *s)
-{
-    fprintf(stderr, &quot;error: %s\n&quot;, s);
-}
+<h2 id="对象创建">对象创建:</h2></li>
 
-</code></pre>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Factory%20Method">Factory Method</a></p></li>
 
-<p><code>bison</code>程序包含了与<code>flex</code>程序相同的三部分结构：
-1. 声明部分
-    + 会被原样拷贝到目标分析程序开头的C代码
-    + <code>%token</code>记号声明告诉<code>bison</code>在语法分析程序中记号的名称(一般用大写字母)
-2. 规则部分
-    + 利用<code>BNF</code>定义的规则，&rdquo;:&ldquo;为&rdquo;是&rdquo;，&rdquo;|&ldquo;为&rdquo;或者&rdquo;
-3. C代码部分</p>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Abstract%20Factory">Abstract Factory</a></p></li>
 
-<p>每个<code>bison</code>规则中的语法符号都有一个语义值，目标符号(冒号左边的语法符号)的值在动作中代码用<code>$$</code>代替，右边语法符号的语义值依次为<code>$1</code>、<code>$2</code>，直到这条规则结束。</p>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Prototype">Prototype</a></p></li>
 
-<p>当词法分析器返回记号时，记号值总是存储在<code>yyval</code>里，其他语法符号的语义值则在语法分析器的规则里进行设置</p>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Builder">Builder</a></p>
 
-<h3 id="编译运行">编译运行</h3>
+<h2 id="对象性能">对象性能：</h2></li>
 
-<p>Makeifle：</p>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Singleton">Singleton</a></p></li>
 
-<pre><code>CC=gcc
-LEX=flex
-YACC=bison
-OBJECT=calculator
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Flyweight">Flyweight(享元模式)</a></p>
 
-$(OBJECT): lex.yy.c calculator.tab.c
-	$(CC) lex.yy.c calculator.tab.c -o $(OBJECT) -lfl
+<h2 id="接口隔离">接口隔离:</h2></li>
 
-lex.yy.c: calculator.l
-	$(LEX) calculator.l
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Facade">Façade(门面模式)</a></p></li>
 
-calculator.tab.c: calculator.y
-	$(YACC) -d calculator.y
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Proxy">Proxy</a></p></li>
 
-clean:
-	rm -rf $(OBJECT) *tab* lex.yy.c
-</code></pre>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Mediator">Mediator(中介者)</a></p></li>
 
-<pre><code>$ make
-flex calculator.l
-bison -d calculator.y
-gcc lex.yy.c calculator.tab.c -o calculator -lfl
-$ ./calculator 
-10 + 20 - 1
-= 29
-a - 2
-Mystery character a
-error: syntax error
-</code></pre>
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Adapter">Adapter</a></p>
+
+<h2 id="状态变化">状态变化：</h2></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Memento">Memento(备忘录)</a></p></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/State">State</a></p>
+
+<h2 id="数据结构">数据结构：</h2></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Composite">Composite(组合模式)</a></p></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Iterator">Iterator</a></p></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Chain%20of%20Resposibility">Chain of Resposibility(职责链)</a></p>
+
+<h2 id="行为变化">行为变化：</h2></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Command">Command</a></p></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Visitor">Visitor</a></p>
+
+<h2 id="领域问题">领域问题：</h2></li>
+
+<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Interpreter">Interpreter</a></p></li>
+</ul>
 
 <h1 id="总结">总结</h1>
 
-<p>现在我已经大概了解了<code>flex</code>和<code>bison</code>，感觉不难，由于和C语言结合的很紧，所以很容易上手，接下来就准备着手完成HTTP请求的解析器了</p>
+<h2 id="现代较少用的模式">现代较少用的模式</h2>
+
+<ul>
+<li>Builder</li>
+<li>Mediator</li>
+<li>Memento</li>
+<li>Iterator</li>
+<li>Chain of Resposibility</li>
+<li>Command</li>
+<li>Visitor</li>
+<li>Interpreter</li>
+</ul>
+
+<p>上面这些设计模式都已经很少用了，随着时间的推移，学习设计模式不能拘泥于某些特定的模式，其实更重要的是设计原则，
+遵守了设计原则，使用哪个设计模式就不再重要了。</p>
               
             </div>
           </div>
@@ -404,9 +387,7 @@ error: syntax error
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-441/">CMU-15-441</a>
-
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">编译原理</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
 
                   </div>
                 
@@ -419,7 +400,7 @@ error: syntax error
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" data-tooltip="C&#43;&#43;设计模式">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -427,7 +408,7 @@ error: syntax error
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/" data-tooltip="缓冲池管理器">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -487,7 +468,7 @@ error: syntax error
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" data-tooltip="C&#43;&#43;设计模式">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -495,7 +476,7 @@ error: syntax error
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/" data-tooltip="缓冲池管理器">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -721,9 +702,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/09\/flex--bsion\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/10\/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F\/';
           
-            this.page.identifier = '\/2018\/09\/flex--bsion\/'
+            this.page.identifier = '\/2018\/10\/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F\/'
           
         };
         (function() {
