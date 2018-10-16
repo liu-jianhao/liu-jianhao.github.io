@@ -8,35 +8,37 @@
 <meta name="generator" content="Hugo 0.49 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="C&#43;&#43;设计模式简单总结
+<meta name="description" content="CMU-15-445 数据库系统实验一缓冲池管理器
 ">
 
 
-<meta property="og:description" content="C&#43;&#43;设计模式简单总结
+<meta property="og:description" content="CMU-15-445 数据库系统实验一缓冲池管理器
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="C&#43;&#43;设计模式">
-<meta name="twitter:title" content="C&#43;&#43;设计模式">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
+<meta property="og:title" content="CMU数据库系统实验一之缓冲池管理器">
+<meta name="twitter:title" content="CMU数据库系统实验一之缓冲池管理器">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/09/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="C&#43;&#43;设计模式简单总结
+<meta property="og:description" content="CMU-15-445 数据库系统实验一缓冲池管理器
 ">
-<meta name="twitter:description" content="C&#43;&#43;设计模式简单总结
+<meta name="twitter:description" content="CMU-15-445 数据库系统实验一缓冲池管理器
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-10-07T00:00:00">
+    <meta property="article:published_time" content="2018-09-20T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-10-07T00:00:00">
+    <meta property="article:modified_time" content="2018-09-20T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="设计模式">
+      <meta property="article:tag" content="CMU-15-445">
+    
+      <meta property="article:tag" content="数据库">
     
   
 
@@ -57,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>C&#43;&#43;设计模式</title>
+    <title>CMU数据库系统实验一之缓冲池管理器</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/09/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -190,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      C&#43;&#43;设计模式
+      CMU数据库系统实验一之缓冲池管理器
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-10-07T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-09-20T00:00:00Z">
         
-  October 7, 2018
+  September 20, 2018
 
       </time>
     
@@ -209,173 +211,113 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>C++设计模式简单总结
+              <p>CMU-15-445 数据库系统实验一缓冲池管理器
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>国庆七天很快就过了，在家没学到什么，只简单地学习了23种设计模式，但趁热打铁，先写一些笔记，方便以后复习。</p>
+<p>之前选课的时候没抢到数据库系统(非科班)，没关系，在网上找到了这个CMU的数据库系统的课程，还有教学视频在｀YouTube`上，很良心，虽然感觉讲的一般般，但我主要是做其中的项目，所以也就没什么影响。</p>
 
-<h1 id="什么是设计模式">什么是设计模式</h1>
+<p>实验使用<code>C++</code>，很对我胃口(不会Java= =)，这门课的实验有一个特点，就是实验是层层递进的，要做实验二就必须完成实验一，因为要用到实验一的代码</p>
 
-<p>“每一个模式描述了一个在我们周围不断重复发生的问题，以及该问题的解决方案的核心。这样，你就能一次又一次地使用该方案而不必做重复劳动”。
-——Christopher Alexander</p>
+<p>话不多说，开始实验一吧</p>
 
-<h1 id="如何解决复杂性">如何解决复杂性？</h1>
+<h1 id="实验一-缓冲池">实验一：缓冲池</h1>
 
-<ul>
-<li>分解
+<p><a href="https://github.com/liu-jianhao/CMU-15-445/tree/master/Lab">实验代码</a></p>
 
-<ul>
-<li>人们面对复杂性有一个常见的做法：即分而治之，将大问题分解为多个小问题，将复杂问题分解为多个简单问题。</li>
-</ul></li>
-<li>抽象
+<p>在存储管理器中实现缓冲池。缓冲池负责将物理页面从主存储器来回移动到磁盘。</p>
 
-<ul>
-<li>更高层次来讲，人们处理复杂性有一个通用的技术，即抽象。由于不能掌握全部的复杂对象，我们选择忽视它的非本质细节，而去处理泛化和理想化了的对象模型。
-<br />
-<br /></li>
-</ul></li>
-</ul>
+<p>它允许DBMS支持大于系统可用内存量的数据库。它的操作对系统中的其他部分是透明的。</p>
 
-<h1 id="面向对象设计原则">面向对象设计原则</h1>
+<p>例如，系统使用其唯一标识符（page_id）向缓冲池请求页面，并且它不知道该页面是否已经在内存中，或者系统是否必须从磁盘检索它。</p>
+
+<p>你的实现需要是线程安全的。多个线程将同时访问内部数据结构，因此您需要确保其关键部分受锁存器保护（这些在操作系统中称为“锁”）。</p>
+
+<p>需要在存储管理器中实现以下三个组件：
+1. 可扩展的哈希表
+2. LRU页面替换政策
+3. 缓冲池管理器</p>
+
+<h2 id="可扩展的哈希表">可扩展的哈希表</h2>
+
+<h3 id="简介">简介</h3>
+
+<p>可扩展哈希表是一种动态哈希表，也就是说，它的桶的个数是可以增加的</p>
+
+<h3 id="要求">要求</h3>
+
+<p>你将构建一个通用哈希表，该表使用无序桶来存储唯一的键/值对。你的哈希表必须支持插入/删除键/值条目而不指定表的最大大小的功能。你的表需要根据需要自动增大，但不需要缩小它。也就是说，不需要实现对缩小或压缩哈希表的支持。还需要支持检查哈希表中是否存在密钥并返回其对应的值。</p>
+
+<h3 id="特性">特性</h3>
 
 <ol>
-<li>依赖倒置原则（DIP）
-
-<ul>
-<li>高层模块(稳定)不应该依赖于低层模块(变化)，二者都应该依赖于抽象(稳定) 。</li>
-<li>抽象(稳定)不应该依赖于实现细节(变化) ，实现细节应该依赖于抽象(稳定)。</li>
-</ul></li>
-<li>开放封闭原则（OCP）
-
-<ul>
-<li>对扩展开放，对更改封闭。</li>
-<li>类模块应该是可扩展的，但是不可修改。</li>
-</ul></li>
-<li>单一职责原则（SRP）
-
-<ul>
-<li>一个类应该仅有一个引起它变化的原因。</li>
-<li>变化的方向隐含着类的责任。</li>
-</ul></li>
-<li>Liskov 替换原则（LSP）
-
-<ul>
-<li>子类必须能够替换它们的基类(IS-A)。</li>
-<li>继承表达类型抽象。</li>
-</ul></li>
-<li>接口隔离原则（ISP）
-
-<ul>
-<li>不应该强迫客户程序依赖它们不用的方法。</li>
-<li>接口应该小而完备。</li>
-</ul></li>
-<li>优先使用对象组合，而不是类继承
-
-<ul>
-<li>类继承通常为“白箱复用”，对象组合通常为“黑箱复用” 。</li>
-<li>继承在某种程度上破坏了封装性，子类父类耦合度高。</li>
-<li>而对象组合则只要求被组合的对象具有良好定义的接口，耦合度低。</li>
-</ul></li>
-<li>封装变化点
-
-<ul>
-<li>使用封装来创建对象之间的分界层，让设计者可以在分界层的一侧进行修改，而不会对另一侧产生不良的影响，从而实现层次间的松耦合。</li>
-</ul></li>
-<li>针对接口编程，而不是针对实现编程
-
-<ul>
-<li>不将变量类型声明为某个特定的具体类，而是声明为某个接口。</li>
-<li>客户程序无需获知对象的具体类型，只需要知道对象所具有的接口。</li>
-<li>减少系统中各部分的依赖关系，从而实现“高内聚、松耦合”的类型设计方案。</li>
-</ul></li>
+<li>相比较静态哈希表，桶不再是数据块本身，而是用一个指向块的指针数组来表示桶</li>
+<li>指针数组能增长，它的长度总是2的幂，因此数组每增长一次，桶的数目就翻倍</li>
+<li>不过并非每个桶都有一个数据块，如果某些桶中的所有记录可以放在一个块中，那么这些桶可以共享一个块</li>
+<li>哈希函数h为每个键计算出一个K位二进制序列，该K足够大，比如32。但是桶的数目总是使用从序列第一位或者最后一位算起的若干位，此位数小于K，比如说i位。也就是说，当i是使用的位数时，桶数组将有2的i次方个项</li>
 </ol>
 
-<h1 id="从封装变化角度对模式分类">从封装变化角度对模式分类</h1>
+<h3 id="实验中的难点">实验中的难点</h3>
 
-<h2 id="组件协作">组件协作：</h2>
+<ol>
+<li>要理解全局的<code>depth</code>和局部(桶)的<code>depth</code>的作用，用<code>HashKey</code>找位置时要仔细</li>
+<li>实验中最难的操作就是插入了，因为要考虑到当某个桶里的数据满的时候，就要分裂，即增加局部的<code>depth</code>，然后重新分配桶的<code>map</code>，分裂后桶的数目要加倍，全局的<code>depth</code>要一直大于等于局部的<code>depth</code></li>
+</ol>
 
-<ul>
-<li><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Template%20Method">Template Method</a></li>
-<li><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Observer">Observer/Event</a></li>
+<h2 id="lru页面替换政策">LRU页面替换政策</h2>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Strategy">Strategy</a></p>
+<h3 id="简介-1">简介</h3>
 
-<h2 id="单一职责">单一职责：</h2></li>
+<p>内存管理的一种页面置换算法，对于在内存中但又不用的数据块（内存块）叫做LRU，操作系统会根据哪些数据属于LRU而将其移出内存而腾出空间来加载另外的数据。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Decorator">Decorator</a></p></li>
+<p>LRU是Least Recently Used的缩写，即最近最少使用，常用于页面置换算法，是为虚拟页式存储管理服务的。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Bridge">Bridge</a></p>
+<h3 id="要求-1">要求</h3>
 
-<h2 id="对象创建">对象创建:</h2></li>
+<p>该组件负责跟踪缓冲池中页面的使用情况。你将<code>LRUReplacer</code>在<code>src/include/buffer/lru_replacer.h</code>中实现一个新的子类，并在<code>src/buffer/lru_replacer.cpp</code>中实现相应的实现文件。这是一个通用类，用于跟踪何时使用它跟踪的元素。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Factory%20Method">Factory Method</a></p></li>
+<h3 id="实验中的难点-1">实验中的难点</h3>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Abstract%20Factory">Abstract Factory</a></p></li>
+<ol>
+<li>要选好数据结构，我选择的数据结构是哈希表，即STL中的<code>unordered_map</code>，键是页面，值是一个节点，节点我用一个双向链表连接起来</li>
+<li>剩下的工作就很简单了</li>
+</ol>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Prototype">Prototype</a></p></li>
+<h3 id="q-a">Q&amp;A</h3>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Builder">Builder</a></p>
+<h4 id="为什么要用哈希表">为什么要用哈希表？</h4>
 
-<h2 id="对象性能">对象性能：</h2></li>
+<p>虽然说实现LRU算法虽简单的数据结构是队列，但当你插入一个页面时，如果该页面是之前就已经在队列中的，那么就要找出之前已经存在队列中的那个页面，然后删除，在重新插入在队列尾部，找到并删除这个操作对于队列来说明显不合适，哈希表能快速查找并删除</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Singleton">Singleton</a></p></li>
+<h4 id="为什么节点要用双向链表连接">为什么节点要用双向链表连接？</h4>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Flyweight">Flyweight(享元模式)</a></p>
+<p>既然已经决定了要用双向链表，那么怎么知道那个页面是最近未使用呢？那必定要用一个类似队列的东西，选择链表最为合适，然后为什么要用双向呢？是由于实验要求要支持<code>Erase</code>操作，即指定某个页面并删除，虽然用单向链表能找到要删除的页面，但是要删除一条链表中的某个节点，必须要知道前后的节点才能删除，因此要保存指向前一个节点的指针</p>
 
-<h2 id="接口隔离">接口隔离:</h2></li>
+<h2 id="缓冲池管理器">缓冲池管理器</h2>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Facade">Façade(门面模式)</a></p></li>
+<h3 id="要求-2">要求</h3>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Proxy">Proxy</a></p></li>
+<p>缓冲池管理器负责从中获取数据库页面DiskManager并将其存储在内存中。该<code>BufferPoolManager</code>也可以写脏页到磁盘时，它明确地指示这样做或何时需要移除一个页面，或产生新的一页。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Mediator">Mediator(中介者)</a></p></li>
+<p>系统中的所有内存页面都由<code>Page</code>对象表示。在<code>BufferPoolManager</code>并不需要了解这些网页的内容。但是，你必须了解<code>Page</code>对象只是缓冲池中内存的容器，因此并不特定于唯一页面。也就是说，每个<code>Page</code>对象都包含一块内存，DiskManager用作复制从磁盘读取的物理页面内容的位置。当它来回移动到磁盘时，<code>BufferPoolManager</code>它将重用相同的Page对象来存储数据。这意味着同一<code>Page</code>对象在整个系统生命周期中可能包含不同的物理页面。该<code>Page</code>对象的<code>IDENTIFER（page_id）</code>跟踪它包含的物理页面; 如果<code>Page</code>对象不包含物理页面，则<code>page_id</code>必须将其设置为<code>INVALID_PAGE_ID</code>。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Adapter">Adapter</a></p>
+<p>每个<code>Page</code>对象还维护一个计数器，用于“固定”该页面的线程数。<code>BufferPoolManager</code>不能释放<code>Page</code>被钉住的东西。每个<code>Page</code>对象还会跟踪它是否脏。在取消固定页面时，记录页面是否被修改是您的工作。<code>BufferPoolManager</code>必须写一个肮脏的内容Page背到磁盘之前，该对象可重复使用。</p>
 
-<h2 id="状态变化">状态变化：</h2></li>
+<p><code>BufferPoolManager</code>实现将使用在先前步骤中创建的<code>ExtendibleHashTable</code>和<code>LRUReplacer</code>。它将使用<code>ExtendibleHashTable</code>映射<code>page_id</code>到<code>Page</code>对象的表。它还将使用它<code>LRUReplacer</code>来跟踪何时Page访问对象，以便它可以决定在必须释放帧以从磁盘复制新物理页面时腾出哪一个。</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Memento">Memento(备忘录)</a></p></li>
+<h3 id="实验中的难点-2">实验中的难点</h3>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/State">State</a></p>
+<ol>
+<li>需要了解<code>DiskManager</code>和<code>Page</code></li>
+<li>剩下的实现只要按照注释中的解释就很简单了</li>
+</ol>
 
-<h2 id="数据结构">数据结构：</h2></li>
+<h2 id="实验一总结">实验一总结</h2>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Composite">Composite(组合模式)</a></p></li>
+<p>总的来说三个子项目的难度排序大概是<code>哈希表&gt;管理器&gt;LRU</code>，第一个我认为是最难的，我花的时间也最长</p>
 
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Iterator">Iterator</a></p></li>
-
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Chain%20of%20Resposibility">Chain of Resposibility(职责链)</a></p>
-
-<h2 id="行为变化">行为变化：</h2></li>
-
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Command">Command</a></p></li>
-
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Visitor">Visitor</a></p>
-
-<h2 id="领域问题">领域问题：</h2></li>
-
-<li><p><a href="https://github.com/liu-jianhao/Cpp-Design-Patterns/tree/master/Interpreter">Interpreter</a></p></li>
-</ul>
-
-<h1 id="总结">总结</h1>
-
-<h2 id="现代较少用的模式">现代较少用的模式</h2>
-
-<ul>
-<li>Builder</li>
-<li>Mediator</li>
-<li>Memento</li>
-<li>Iterator</li>
-<li>Chain of Resposibility</li>
-<li>Command</li>
-<li>Visitor</li>
-<li>Interpreter</li>
-</ul>
-
-<p>上面这些设计模式都已经很少用了，随着时间的推移，学习设计模式不能拘泥于某些特定的模式，其实更重要的是设计原则，
-遵守了设计原则，使用哪个设计模式就不再重要了。</p>
+<p>虽然过程磕磕绊绊，但也总算是完成了第一个实验，准备着手第二个实验了</p>
               
             </div>
           </div>
@@ -387,7 +329,9 @@
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-445/">CMU-15-445</a>
+
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
 
                   </div>
                 
@@ -400,7 +344,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -408,7 +352,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8B%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" data-tooltip="MIT6.828操作系统实验二之内存管理">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -468,7 +412,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -476,7 +420,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/flex--bsion/" data-tooltip="flex &amp; bsion">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8B%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" data-tooltip="MIT6.828操作系统实验二之内存管理">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -738,9 +682,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/10\/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/09\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8\/';
           
-            this.page.identifier = '\/2018\/10\/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F\/'
+            this.page.identifier = '\/2018\/09\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8\/'
           
         };
         (function() {
