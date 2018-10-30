@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>面经 on liu-jianhao&#39;s Blog</title>
+    <link>https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/</link>
+    <description>Recent content in 面经 on liu-jianhao&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 30 Jul 2018 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>锐明科技、迈科龙面经</title>
+      <link>https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/</link>
+      <pubDate>Mon, 30 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/</guid>
+      <description>&lt;p&gt;锐明科技笔试、迈科龙笔试面试总结
+&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

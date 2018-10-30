@@ -8,39 +8,19 @@
 <meta name="generator" content="Hugo 0.49 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="为完成一个HTTP请求的解析器做准备
-">
+<meta name="description" content="Hugo tranquilpeak theme demo">
 
 
-<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
-">
-<meta property="og:type" content="article">
-<meta property="og:title" content="flex &amp; bsion">
-<meta name="twitter:title" content="flex &amp; bsion">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/flex--bsion/">
+<meta property="og:description" content="Hugo tranquilpeak theme demo">
+<meta property="og:type" content="website">
+<meta property="og:title" content="面经">
+<meta name="twitter:title" content="面经">
+<meta property="og:url" content="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="为完成一个HTTP请求的解析器做准备
-">
-<meta name="twitter:description" content="为完成一个HTTP请求的解析器做准备
-">
+<meta property="og:description" content="Hugo tranquilpeak theme demo">
+<meta name="twitter:description" content="Hugo tranquilpeak theme demo">
 <meta property="og:locale" content="en-us">
-
-  
-    <meta property="article:published_time" content="2018-09-27T00:00:00">
-  
-  
-    <meta property="article:modified_time" content="2018-09-27T00:00:00">
-  
-  
-  
-  
-    
-      <meta property="article:tag" content="CMU-15-441">
-    
-      <meta property="article:tag" content="编译原理">
-    
-  
 
 
 <meta name="twitter:card" content="summary">
@@ -59,14 +39,16 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>flex &amp; bsion</title>
+    <title>面经</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
+      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/index.xml">
+    
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/09/flex--bsion/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -86,7 +68,7 @@
 
   <body>
     <div id="blog">
-      <header id="header" data-behavior="4">
+      <header id="header" data-behavior="1">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
     <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
@@ -94,7 +76,7 @@
   
 </header>
 
-      <nav id="sidebar" data-behavior="4">
+      <nav id="sidebar" data-behavior="1">
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
@@ -181,297 +163,70 @@
 </nav>
 
       
+        
 
-      <div id="main" data-behavior="4"
+      
+      <div id="main" data-behavior="1"
         class="
                hasCoverMetaIn
                ">
-        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
-          
-          
-            <div class="post-header main-content-wrap text-left">
+        
+          <section class="postShorten-group main-content-wrap">
+            
+            
+              
   
-    <h1 class="post-title" itemprop="headline">
-      flex &amp; bsion
-    </h1>
+    
+      
+        
+      
+    
   
+
+
   
+
+<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
+  <div class="postShorten-wrap">
+    
+    <div class="postShorten-header">
+      <h1 class="postShorten-title" itemprop="headline">
+        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+          锐明科技、迈科龙面经
+        </a>
+      </h1>
+      
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-09-27T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-07-30T00:00:00Z">
         
-  September 27, 2018
+  July 30, 2018
 
       </time>
     
     
   </div>
 
-</div>
-          
-          <div class="post-content markdown" itemprop="articleBody">
-            <div class="main-content-wrap">
-              <p>为完成一个HTTP请求的解析器做准备
+    </div>
+    <div class="postShorten-excerpt" itemprop="articleBody">
+      
+        <p>锐明科技笔试、迈科龙笔试面试总结
 </p>
-
-<h1 id="前言">前言</h1>
-
-<p>在做CMU-15-441(计算机网络)的第一个作业的第二部分时，要用到<code>lex</code>和<code>yacc</code>完成对<code>HTTP</code>请求的解析器，由于没有学过编译原理，所以对<code>lex</code>和<code>yacc</code>一窍不通，所以先学习它们的使用</p>
-
-<h1 id="flex-和-bsion-简介">flex 和 bsion 简介</h1>
-
-<p><code>flex</code>和<code>bison</code>是用来生成程序的工具，它们所生成的程序能够处理结构化输入。最初<code>flex</code>和<code>bsion</code>是用来生成编译器的，但在其他领域也非常有用。</p>
-
-<h2 id="词法分析和语法分析">词法分析和语法分析</h2>
-
-<p>词法分析：lexical analysis
-+ 把输入分割成一个个有意义的词块，称为记号(token)</p>
-
-<p>语法分析：syntax analysis
-+ 确定这些记号是如何彼此关联</p>
-
-<p>例如</p>
-
-<pre><code>alpha = beta +　gamma;
-</code></pre>
-
-<p>词法分析器把这段代码分解成：<code>alpha</code>、<code>=</code>、<code>beta</code>、<code>+</code>、<code>gamma</code>、<code>；</code>。</p>
-
-<p>接着语法分析器确定<code>beta+gamma</code>是一个表达式，而这个表达式被献给<code>alpha</code>。</p>
-
-<h2 id="第一个flex程序-类wc">第一个flex程序：类wc</h2>
-
-<pre><code>%{
-int chars = 0;
-int words = 0;
-int lines = 0;
-%}
-%%
-[a-zA-Z]+   { words++; chars += strlen(yytext); }
-\n          { chars++; lines++; }
-.           { chars++; }
-%%
-main(int argc, char **argv)
-{
-    yylex();
-    printf(&quot;%8d%8d%8d\n&quot;, lines, words ,chars);
-}
-</code></pre>
-
-<p>整个<code>flex</code>程序包含三个部分：
-1. 声明和选项设置
-    + <code>%{</code> 和 <code>%}</code>之间的代码
-2. 模式和动作
-    + 每个模式处在第一行的开头，接着是模式匹配时所需要执行的C代码(用<code>{}</code>括住)
-    + 注意，模式必须在行首出现，<code>flex</code>认为以空白开始的行都是代码而把它们照抄到生成的C代码中
-    + <code>[a-zA-Z]+</code> 匹配一个单词
-    + <code>\n</code> 匹配换行符
-    + <code>.</code> 匹配任意一个字符
-    + 在任意一个<code>flex</code>动作中，变量<code>yytext</code>总是被设为指向本次匹配的输入文本
-3. 会被拷贝到生成的词法分析器里面的C代码
-    + 最后的C代码是主程序，负责调用<code>flex</code>提供的词法分析例程<code>yylex()</code>，并输出结果</p>
-
-<pre><code class="language-shell">$ flex wc.l
-$ gcc lex.yy.c -lfl
-$ ./a.out &lt; lex.yy.c
-    1754    6601   44324
-</code></pre>
-
-<h2 id="结合bison">结合bison</h2>
-
-<h3 id="calcultor-l">calcultor.l</h3>
-
-<pre><code>%{
-#include &quot;calculator.tab.h&quot;
-%}
-%%
-&quot;+&quot;     { return ADD; }
-&quot;-&quot;     { return SUB; }
-&quot;*&quot;     { return MUL; }
-&quot;/&quot;     { return DIV; }
-&quot;|&quot;     { return ABS; }
-&quot;(&quot;     { return OP; }
-&quot;)&quot;     { return CP; }
-&quot;//&quot;.*  { }
-[0-9]+  { yylval = atoi(yytext); return NUMBER; }
-\n      { return EOL; }
-[ \t]   { }
-.       { printf(&quot;Mystery character %s\n&quot;, yytext); }
-%%
-</code></pre>
-
-<p>大多数词法分析器用来获得一个记号流，这样可以方便语法分析器处理。每当一个程序需要一个记号时，它调用<code>yylex()</code>来读取一小部分输入然后返回相应的记号。如果一个模式不能够产生一个用于调用程序且不可以返回的记号时，词法分析器会在这次<code>yylex()</code>的调用中继续分析接下来的输入字符。</p>
-
-<h3 id="calcultor-y">calcultor.y</h3>
-
-<pre><code>%{
-#include &lt;stdio.h&gt;
-%}
-
-%token NUMBER
-%token ADD SUB MUL DIV ABS
-%token EOL
-%token OP CP
-
-%%
-calclist:
-    | calclist exp EOL { printf(&quot;= %d\n&quot;, $2); }
-    ;
-
-exp: factor
-    | exp ADD factor { $$ = $1 + $3; }
-    | exp SUB factor { $$ = $1 - $3; }
-    ;
-
-factor: term
-    | factor MUL term { $$ = $1 * $3; }
-    | factor DIV term { $$ = $1 / $3; }
-    ;
-
-term: NUMBER
-    | ABS term { $$ = $2 &gt;= 0 ? $2 : -$2; }
-    | OP exp CP { $$ = $2; }
-    ;
-%%
-main(int argc, char **argv)
-{
-    yyparse();
-}
-yyerror(char *s)
-{
-    fprintf(stderr, &quot;error: %s\n&quot;, s);
-}
-
-</code></pre>
-
-<p><code>bison</code>程序包含了与<code>flex</code>程序相同的三部分结构：
-1. 声明部分
-    + 会被原样拷贝到目标分析程序开头的C代码
-    + <code>%token</code>记号声明告诉<code>bison</code>在语法分析程序中记号的名称(一般用大写字母)
-2. 规则部分
-    + 利用<code>BNF</code>定义的规则，&rdquo;:&ldquo;为&rdquo;是&rdquo;，&rdquo;|&ldquo;为&rdquo;或者&rdquo;
-3. C代码部分</p>
-
-<p>每个<code>bison</code>规则中的语法符号都有一个语义值，目标符号(冒号左边的语法符号)的值在动作中代码用<code>$$</code>代替，右边语法符号的语义值依次为<code>$1</code>、<code>$2</code>，直到这条规则结束。</p>
-
-<p>当词法分析器返回记号时，记号值总是存储在<code>yyval</code>里，其他语法符号的语义值则在语法分析器的规则里进行设置</p>
-
-<h3 id="编译运行">编译运行</h3>
-
-<p>Makeifle：</p>
-
-<pre><code>CC=gcc
-LEX=flex
-YACC=bison
-OBJECT=calculator
-
-$(OBJECT): lex.yy.c calculator.tab.c
-	$(CC) lex.yy.c calculator.tab.c -o $(OBJECT) -lfl
-
-lex.yy.c: calculator.l
-	$(LEX) calculator.l
-
-calculator.tab.c: calculator.y
-	$(YACC) -d calculator.y
-
-clean:
-	rm -rf $(OBJECT) *tab* lex.yy.c
-</code></pre>
-
-<pre><code>$ make
-flex calculator.l
-bison -d calculator.y
-gcc lex.yy.c calculator.tab.c -o calculator -lfl
-$ ./calculator 
-10 + 20 - 1
-= 29
-a - 2
-Mystery character a
-error: syntax error
-</code></pre>
-
-<h1 id="总结">总结</h1>
-
-<p>现在我已经大概了解了<code>flex</code>和<code>bison</code>，感觉不难，由于和C语言结合的很紧，所以很容易上手，接下来就准备着手完成HTTP请求的解析器了</p>
-              
-            </div>
-          </div>
-          <div id="post-footer" class="post-footer main-content-wrap">
-            
-              
-                
-                
-                  <div class="post-footer-tags">
-                    <span class="text-color-light text-small">TAGGED IN</span><br/>
-                    
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-441/">CMU-15-441</a>
-
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86/">编译原理</a>
-
-                  </div>
-                
-              
-            
-            <div class="post-actions-wrap">
+      
+      <p>
+        <a href="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/" class="postShorten-excerpt_link link">Continue reading</a>
+        
+      </p>
+    </div>
+  </div>
   
-      <nav >
-        <ul class="post-actions post-action-nav">
-          
-            <li class="post-action">
-              
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" data-tooltip="C&#43;&#43;设计模式">
-              
-                  <i class="fa fa-angle-left"></i>
-                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
-                </a>
-            </li>
-            <li class="post-action">
-              
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/" data-tooltip="CMU数据库系统实验一之缓冲池管理器">
-              
-                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
-                  <i class="fa fa-angle-right"></i>
-                </a>
-            </li>
-          
-        </ul>
-      </nav>
-    <ul class="post-actions post-action-share" >
-      
-        <li class="post-action hide-lg hide-md hide-sm">
-          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
-            <i class="fa fa-share-alt"></i>
-          </a>
-        </li>
-        
-      
-      
-        <li class="post-action">
-          <a class="post-action-btn btn btn--default" href="#disqus_thread">
-            <i class="fa fa-comment-o"></i>
-          </a>
-        </li>
-      
-      <li class="post-action">
-        
-          <a class="post-action-btn btn btn--default" href="#">
-        
-          <i class="fa fa-list"></i>
-        </a>
-      </li>
-    </ul>
-  
-</div>
+</article>
 
             
-              
-                <div id="disqus_thread">
-  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-              
             
-          </div>
-        </article>
+
+          </section>
+        
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2018 liu jianhao. All Rights Reserved
@@ -479,66 +234,6 @@ error: syntax error
 </footer>
 
       </div>
-      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
-        <div class="post-actions-wrap">
-  
-      <nav >
-        <ul class="post-actions post-action-nav">
-          
-            <li class="post-action">
-              
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" data-tooltip="C&#43;&#43;设计模式">
-              
-                  <i class="fa fa-angle-left"></i>
-                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
-                </a>
-            </li>
-            <li class="post-action">
-              
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8B%E7%BC%93%E5%86%B2%E6%B1%A0%E7%AE%A1%E7%90%86%E5%99%A8/" data-tooltip="CMU数据库系统实验一之缓冲池管理器">
-              
-                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
-                  <i class="fa fa-angle-right"></i>
-                </a>
-            </li>
-          
-        </ul>
-      </nav>
-    <ul class="post-actions post-action-share" >
-      
-        <li class="post-action hide-lg hide-md hide-sm">
-          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
-            <i class="fa fa-share-alt"></i>
-          </a>
-        </li>
-        
-      
-      
-        <li class="post-action">
-          <a class="post-action-btn btn btn--default" href="#disqus_thread">
-            <i class="fa fa-comment-o"></i>
-          </a>
-        </li>
-      
-      <li class="post-action">
-        
-          <a class="post-action-btn btn btn--default" href="#">
-        
-          <i class="fa fa-list"></i>
-        </a>
-      </li>
-    </ul>
-  
-</div>
-
-      </div>
-      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
-  <i id="btn-close-shareoptions" class="fa fa-close"></i>
-  <ul class="share-options">
-    
-  </ul>
-</div>
-<div id="share-options-mask" class="share-options-mask"></div>
     </div>
     
     <div id="about">
@@ -788,32 +483,6 @@ $(document).ready(function() {
 });
 </script>
 
-
-  
-    
-      <script>
-        var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/09\/flex--bsion\/';
-          
-            this.page.identifier = '\/2018\/09\/flex--bsion\/'
-          
-        };
-        (function() {
-          
-          
-          if (window.location.hostname == "localhost") {
-            return;
-          }
-          var d = document, s = d.createElement('script');
-          var disqus_shortname = 'hugo-tranquilpeak-theme';
-          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
-
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-      </script>
-    
-  
 
 
 
