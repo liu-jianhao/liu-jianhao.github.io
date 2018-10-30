@@ -6,10 +6,20 @@
     <description>Recent content on liu-jianhao&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 25 Oct 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 30 Oct 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://liu-jianhao.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>CMU数据库系统实验四之日志和恢复</title>
+      <link>https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/</link>
+      <pubDate>Tue, 30 Oct 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/</guid>
+      <description>&lt;p&gt;CMU-15-445 数据库系统实验四日志和恢复
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>CMU数据库系统实验三之并发控制</title>
