@@ -6,10 +6,20 @@
     <description>Recent content in Cmu 15 445 on liu-jianhao&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 30 Oct 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 31 Oct 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://liu-jianhao.github.io/tags/cmu-15-445/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>CMU数据库系统总结</title>
+      <link>https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/</link>
+      <pubDate>Wed, 31 Oct 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/</guid>
+      <description>&lt;p&gt;CMU-15-445 数据库系统总结
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>CMU数据库系统实验四之日志和恢复</title>
