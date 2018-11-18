@@ -241,36 +241,37 @@
 <h3 id="实现步骤">实现步骤</h3>
 
 <ol>
-<li>首先根据论文完善Raft结构体中必要的成员
-```go
-type Raft struct {
+<li>首先根据论文完善Raft结构体中必要的成员</li>
+</ol>
+
+<pre><code class="language-go">type Raft struct {
 	mu        sync.Mutex
 	peers     []*labrpc.ClientEnd
 	persister *Persister
-	me        int // index into peers[]</li>
-</ol>
+	me        int // index into peers[]
 
-<p>	// 当前服务器状态
+	// 当前服务器状态
 	state int
 	// 候选人获得的票数
 	voteAcquired int
 	// 传播心跳的通道
 	heartbeatCh chan interface{}
 	// 当候选人赢得了选举就会利用这个通道传送消息
-	leaderCh chan interface{}</p>
+	leaderCh chan interface{}
 
-<p>	/*
+	/*
 	 * 全部服务器上面的可持久化状态:
 	 *  currentTerm 	服务器看到的最近Term(第一次启动的时候为0,后面单调递增)
 	 *  votedFor     	当前Term收到的投票候选 (如果没有就为null)
 	 */
 	currentTerm int
 	votedFor int
-}</p>
+}
+</code></pre>
 
-<pre><code>每个服务器只可能存在一下三个状态之一：
-```go
-const (
+<p>每个服务器只可能存在一下三个状态之一：</p>
+
+<pre><code class="language-go">const (
 	STATE_FLLOWER = 0
 	STATE_CANDIDATE = 1
 	STATE_LEADER = 2
@@ -279,27 +280,29 @@ const (
 
 <ol>
 <li>继续根据论文完善在RPC之间传递和返回的参数一些结构体</li>
-<li>选举相关
-```go
-type RequestVoteArgs struct {
+<li>选举相关</li>
+</ol>
+
+<pre><code class="language-go">type RequestVoteArgs struct {
 	// 候选人的term
 	Term int
 	// 候选人在节点数组中的下标
 	CandidateId int
-}</li>
-</ol>
+}
 
-<p>type RequestVoteReply struct {
+type RequestVoteReply struct {
 	// currnetTerm，用来给候选人更新term
 	Term int
 	// true就说明候选人得到了选票
 	VoteGranted bool
-}</p>
+}
+</code></pre>
 
-<pre><code>
-+ 复制日志相关
-```go
-type AppendEntriesArgs struct {
+<ul>
+<li>复制日志相关</li>
+</ul>
+
+<pre><code class="language-go">type AppendEntriesArgs struct {
 	// 领导人的term
 	Term int
 	// 领导人所在的下标
@@ -315,27 +318,27 @@ type AppendEntriesReply struct {
 </code></pre>
 
 <ol>
-<li>这一部分的重头戏，实现Make()方法
-```go
-func Make(peers []*labrpc.ClientEnd, me int,
+<li>这一部分的重头戏，实现Make()方法</li>
+</ol>
+
+<pre><code class="language-go">func Make(peers []*labrpc.ClientEnd, me int,
 	persister *Persister, applyCh chan ApplyMsg) *Raft {
 	rf := &amp;Raft{}
 	rf.peers = peers
 	rf.persister = persister
-	rf.me = me</li>
-</ol>
+	rf.me = me
 
-<p>	// 初始化
+	// 初始化
 	rf.state = STATE_FLLOWER
 	rf.votedFor = -1
 	rf.currentTerm = 0
 	rf.heartbeatCh = make(chan interface{})
-	rf.leaderCh = make(chan interface{})</p>
+	rf.leaderCh = make(chan interface{})
 
-<p>	// initialize from state persisted before a crash
-	rf.readPersist(persister.ReadRaftState())</p>
+	// initialize from state persisted before a crash
+	rf.readPersist(persister.ReadRaftState())
 
-<p>	// 状态机循环
+	// 状态机循环
 	go func() {
 		for {
 			switch rf.state {
@@ -345,14 +348,14 @@ func Make(peers []*labrpc.ClientEnd, me int,
 				case &lt;- rf.heartbeatCh:
 				case &lt;- time.After(time.Duration(rand.Int63() % 333 + 550) * time.Millisecond):
 					rf.state = STATE_CANDIDATE
-				}	</p>
+				}	
 
-<p>			case STATE_LEADER:
+			case STATE_LEADER:
 				// 如果是领导人就执行复制日志(携带心跳)的操作
 				rf.broadcastAppendEntries()
-				time.Sleep(50 * time.Millisecond)</p>
+				time.Sleep(50 * time.Millisecond)
 
-<p>			case STATE_CANDIDATE:
+			case STATE_CANDIDATE:
 				// 候选人要准备投票选举
 				rf.mu.Lock()
 				rf.currentTerm++
@@ -372,18 +375,20 @@ func Make(peers []*labrpc.ClientEnd, me int,
 				}	
 			}
 		}
-	}()</p>
+	}()
 
-<p>	return rf
-}</p>
+	return rf
+}
+</code></pre>
 
-<pre><code>
-4. 实现在第3步中使用却没实现的两个操作：领导人选举和日志复制
-+ 领导人选举
+<ol>
+<li>实现在第3步中使用却没实现的两个操作：领导人选举和日志复制</li>
+<li>领导人选举</li>
+</ol>
 
-下面这个是RPC函数，用来给候选人调用的，然后在每个服务器执行
-```go
-func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
+<p>下面这个是RPC函数，用来给候选人调用的，然后在每个服务器执行</p>
+
+<pre><code class="language-go">func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here.
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
