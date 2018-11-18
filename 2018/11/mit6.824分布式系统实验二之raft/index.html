@@ -8,35 +8,37 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="description" content="分布式一致性算法Raft的实现
 ">
 
 
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="分布式一致性算法Raft的实现
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="锐明科技、迈科龙面经">
-<meta name="twitter:title" content="锐明科技、迈科龙面经">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+<meta property="og:title" content="MIT6.824分布式系统实验二之Raft">
+<meta name="twitter:title" content="MIT6.824分布式系统实验二之Raft">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="分布式一致性算法Raft的实现
 ">
-<meta name="twitter:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="twitter:description" content="分布式一致性算法Raft的实现
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-07-30T00:00:00">
+    <meta property="article:published_time" content="2018-11-18T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-07-30T00:00:00">
+    <meta property="article:modified_time" content="2018-11-18T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="面经">
+      <meta property="article:tag" content="MIT6.824">
+    
+      <meta property="article:tag" content="分布式系统">
     
   
 
@@ -57,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>锐明科技、迈科龙面经</title>
+    <title>MIT6.824分布式系统实验二之Raft</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -190,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      锐明科技、迈科龙面经
+      MIT6.824分布式系统实验二之Raft
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-07-30T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-11-18T00:00:00Z">
         
-  July 30, 2018
+  November 18, 2018
 
       </time>
     
@@ -209,45 +211,447 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>锐明科技笔试、迈科龙笔试面试总结
+              <p>分布式一致性算法Raft的实现
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>本来想着要在大二暑假找个暑期实习，所以投了将近十家公司，但是只有两家有通知，其他都没消息了，
-估计因为我不是是应届生，且实习时间太短，当然还有就是自己太菜了。</p>
+<p>MIT6.824这门课本来是从暑假就开始做的，但是由于各种原因，导致进度缓慢，尤其是实验二卡了很久，
+在学完CMU的数据库课程后就重新开始实验二，这次学的更深入且认真。</p>
 
-<p>下面记录一些还有印象的或但是不太懂的题。</p>
+<p>下面是该实验的实验报告。<a href="https://github.com/liu-jianhao/simple-raft">代码</a></p>
 
-<h2 id="锐明科技笔试">锐明科技笔试</h2>
+<h1 id="raft">Raft</h1>
 
-<p>当时投的是C++软件工程师。</p>
+<p>实验之前一定要仔细阅读<a href="http://nil.csail.mit.edu/6.824/2016/papers/raft-extended.pdf">《In Search of an Understandable Consensus Algorithm (Extended Version)》</a>，尤其是第5节，实现代码的时候要按照论文的内容。</p>
 
-<ol>
-<li>以<code>1 2 3 4</code>顺序<code>push</code>进一个容量为4的栈，写出出栈所有的可能。
-```shell
-这道题考察的是栈的操作，注意思路要清晰，别想到一个就写一个，是有规律的，这样思路容易乱。
-4 3 2 1
-3 4 2 1
-3 2 4 1</li>
-</ol>
+<h2 id="raft-part1-领导人选举">Raft_part1——领导人选举</h2>
 
-<p>2 4 3 1
-2 3 4 1
-2 3 1 4
-2 1 4 3
-2 1 3 4</p>
+<p>在这一部分，有关日志复制的部分暂时不会被实现，留到第二部分</p>
 
-<p>1 4 3 2
-1 3 4 2
-1 3 2 4
-1 2 4 3
-1 2 3 4
-```</p>
+<h3 id="框架">框架</h3>
+
+<ul>
+<li><code>Raft</code>这个结构体是每一个服务器持有一个的，作为状态机存在</li>
+<li>在这个实验中只有两个RPC，一个是请求投票的<code>ReqestVote</code>，另一个是修改日志(附带心跳)的<code>AppendEntries</code></li>
+<li>每个服务器的功能都一样，只是状态不同而已，状态只能是跟随者、候选人或者领导者的其中一个</li>
+<li>每个服务器通过RPC调用<code>sendXXX</code>函数来调用其他服务器的<code>XXX</code>函数</li>
+</ul>
+
+<h3 id="实现步骤">实现步骤</h3>
 
 <ol>
-<li>用C++实现一个双向链表。</li>
+<li>首先根据论文完善Raft结构体中必要的成员
+```go
+type Raft struct {
+	mu        sync.Mutex
+	peers     []*labrpc.ClientEnd
+	persister *Persister
+	me        int // index into peers[]</li>
 </ol>
+
+<p>	// 当前服务器状态
+	state int
+	// 候选人获得的票数
+	voteAcquired int
+	// 传播心跳的通道
+	heartbeatCh chan interface{}
+	// 当候选人赢得了选举就会利用这个通道传送消息
+	leaderCh chan interface{}</p>
+
+<p>	/*
+	 * 全部服务器上面的可持久化状态:
+	 *  currentTerm 	服务器看到的最近Term(第一次启动的时候为0,后面单调递增)
+	 *  votedFor     	当前Term收到的投票候选 (如果没有就为null)
+	 */
+	currentTerm int
+	votedFor int
+}</p>
+
+<pre><code>每个服务器只可能存在一下三个状态之一：
+```go
+const (
+	STATE_FLLOWER = 0
+	STATE_CANDIDATE = 1
+	STATE_LEADER = 2
+)
+</code></pre>
+
+<ol>
+<li>继续根据论文完善在RPC之间传递和返回的参数一些结构体</li>
+<li>选举相关
+```go
+type RequestVoteArgs struct {
+	// 候选人的term
+	Term int
+	// 候选人在节点数组中的下标
+	CandidateId int
+}</li>
+</ol>
+
+<p>type RequestVoteReply struct {
+	// currnetTerm，用来给候选人更新term
+	Term int
+	// true就说明候选人得到了选票
+	VoteGranted bool
+}</p>
+
+<pre><code>
++ 复制日志相关
+```go
+type AppendEntriesArgs struct {
+	// 领导人的term
+	Term int
+	// 领导人所在的下标
+	LeaderId int
+}
+
+type AppendEntriesReply struct {
+	// currentTerm，用来给领导人更新term
+	Term int
+	// true，说明和跟随者的日志匹配
+	Success bool
+}
+</code></pre>
+
+<ol>
+<li>这一部分的重头戏，实现Make()方法
+```go
+func Make(peers []*labrpc.ClientEnd, me int,
+	persister *Persister, applyCh chan ApplyMsg) *Raft {
+	rf := &amp;Raft{}
+	rf.peers = peers
+	rf.persister = persister
+	rf.me = me</li>
+</ol>
+
+<p>	// 初始化
+	rf.state = STATE_FLLOWER
+	rf.votedFor = -1
+	rf.currentTerm = 0
+	rf.heartbeatCh = make(chan interface{})
+	rf.leaderCh = make(chan interface{})</p>
+
+<p>	// initialize from state persisted before a crash
+	rf.readPersist(persister.ReadRaftState())</p>
+
+<p>	// 状态机循环
+	go func() {
+		for {
+			switch rf.state {
+			case STATE_FLLOWER:
+				select {
+				// 接收到心跳或者超时就变为候选者
+				case &lt;- rf.heartbeatCh:
+				case &lt;- time.After(time.Duration(rand.Int63() % 333 + 550) * time.Millisecond):
+					rf.state = STATE_CANDIDATE
+				}	</p>
+
+<p>			case STATE_LEADER:
+				// 如果是领导人就执行复制日志(携带心跳)的操作
+				rf.broadcastAppendEntries()
+				time.Sleep(50 * time.Millisecond)</p>
+
+<p>			case STATE_CANDIDATE:
+				// 候选人要准备投票选举
+				rf.mu.Lock()
+				rf.currentTerm++
+				// 先投给自己一票
+				rf.votedFor = rf.me
+				rf.voteAcquired = 1
+				rf.mu.Unlock()
+				go rf.broadcastRequestVote()
+				select {
+				// 超时或者接收到心跳(其他节点先成为领导人)就变为跟随者
+				case &lt;- time.After(time.Duration(rand.Int63() % 333 + 550) * time.Millisecond):
+				case &lt;- rf.heartbeatCh:
+					rf.state = STATE_FLLOWER	
+				// 从leaderCh通道接收到消息说明赢得选举，成为领导人
+				case &lt;- rf.leaderCh:
+					rf.state = STATE_LEADER
+				}	
+			}
+		}
+	}()</p>
+
+<p>	return rf
+}</p>
+
+<pre><code>
+4. 实现在第3步中使用却没实现的两个操作：领导人选举和日志复制
++ 领导人选举
+
+下面这个是RPC函数，用来给候选人调用的，然后在每个服务器执行
+```go
+func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
+	// Your code here.
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	reply.Term = rf.currentTerm
+
+	// 如果候选人的term比自己的还小，则不给该候选人投票
+	if args.Term &lt; rf.currentTerm {
+		reply.VoteGranted = false
+		return
+	} else if args.Term &gt; rf.currentTerm {
+		rf.currentTerm = args.Term
+		rf.state = STATE_FLLOWER
+		reply.VoteGranted = true
+	}
+}
+</code></pre>
+
+<pre><code class="language-go">func (rf *Raft) sendRequestVote(server int, args RequestVoteArgs, reply *RequestVoteReply) bool {
+	// 调用RPC
+	ok := rf.peers[server].Call(&quot;Raft.RequestVote&quot;, args, reply)
+
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	if ok {
+		term := rf.currentTerm
+		if rf.state != STATE_CANDIDATE {
+			return ok
+		} else if args.Term != term {
+			return ok
+		}
+
+		// 更新自己的term
+		if reply.Term &gt; term {
+			rf.currentTerm = reply.Term
+			rf.state = STATE_FLLOWER
+			rf.votedFor = -1
+		}
+
+		// 统计选票
+		if reply.VoteGranted == true {
+			rf.voteAcquired++
+			if rf.voteAcquired &gt; len(rf.peers)/2 {
+				rf.state = STATE_FLLOWER
+				rf.leaderCh &lt;- true
+			}
+		}
+	}
+
+	return ok
+}
+
+func (rf *Raft) broadcastRequestVote() {
+	// 遍历整个Raft服务器数组，执行领导人选举
+	for i := range rf.peers {
+		if i != rf.me {	
+			// 初始化要传给RPC调用的函数参数
+			var args RequestVoteArgs
+			args.Term = rf.currentTerm
+			args.CandidateId = rf.me
+
+			go func(i int) {
+				var reply RequestVoteReply
+				rf.sendRequestVote(i, args, &amp;reply)
+			}(i)
+		}
+	}
+}
+</code></pre>
+
+<ul>
+<li>复制日志(在这一部分只实现简单的心跳)</li>
+</ul>
+
+<p>下面这个是RPC函数，用来给候领导人调用的，然后在每个服务器执行</p>
+
+<pre><code class="language-go">func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply) {
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	rf.heartbeatCh &lt;- struct{}{}
+}
+</code></pre>
+
+<p>有了之前实现的投票，类似地实现日志复制</p>
+
+<pre><code class="language-go">func (rf *Raft) sendAppendEntries(server int, args AppendEntriesArgs, reply *AppendEntriesReply) bool {
+	ok := rf.peers[server].Call(&quot;Raft.AppendEntries&quot;, args, reply)
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	if ok {
+		if rf.state != STATE_LEADER {
+			return ok
+		} else if args.Term != rf.currentTerm {
+			return ok
+		}
+
+		// 更新自己的term
+		if reply.Term &gt; rf.currentTerm {
+			rf.currentTerm = reply.Term
+			rf.state = STATE_FLLOWER
+			rf.votedFor = -1
+			return ok
+		}
+	}
+
+	return ok
+}
+
+func (rf *Raft) broadcastAppendEntries() {
+	for i := range rf.peers {
+		if i != rf.me &amp;&amp; rf.state == STATE_LEADER {
+			// 参数初始化
+			var args AppendEntriesArgs
+			args.Term = rf.currentTerm
+			args.LeaderId = rf.me
+
+			go func(i int, args AppendEntriesArgs) {
+				var reply AppendEntriesReply
+				rf.sendAppendEntries(i, args, &amp;reply)
+			}(i, args)
+		}
+	}
+}
+</code></pre>
+
+<h3 id="测试">测试</h3>
+
+<p>只能通过前两个测试点</p>
+
+<pre><code class="language-shell">$ go test
+go test
+Test: initial election ...
+  ... Passed
+Test: election after network failure ...
+  ... Passed
+Test: basic agreement ...
+^Csignal: interrupt
+FAIL	raft	12.131s
+</code></pre>
+
+<h2 id="raft-part2-日志的复制">raft_part2——日志的复制</h2>
+
+<h2 id="调试错误">调试错误</h2>
+
+<ol>
+<li>怎么也通不过第三个测试<code>basic agreement</code>？
+这个错误找了很久，我以为问题是出在日志复制部分，但是怎么也排查不出来。</li>
+</ol>
+
+<p>最后再重新看整个代码，发现<code>Start()</code>函数这里没修改，因为这个函数是与’客户‘通信的通道，如果是leader就要添加指令</p>
+
+<pre><code class="language-go">func (rf *Raft) Start(command interface{}) (int, int, bool) {
+	rf.mu.Lock()
+	defer rf.mu.Unlock()
+
+	index := -1
+	term := rf.currentTerm
+	isLeader := rf.state == STATE_LEADER
+
+	if isLeader == true {
+		index = rf.getLastIndex() + 1
+		rf.log = append(rf.log, LogEntry{LogTerm: term, LogCmd: command})
+	}
+	return index, term, isLeader
+}
+</code></pre>
+
+<p>修改之后就能通过第三个测试了，但是第五个测试没通过。</p>
+
+<ol>
+<li>第五个测试<code>no agreement if too many followers fail</code>？
+错误提示：
+<code>shell
+Test: no agreement if too many followers fail ...
+--- FAIL: TestFailNoAgree (3.30s)
+	test_test.go:164: 2 committed but no majority
+</code>
+既然是跟commint日志相关，那么范围可以缩小到有关日志提交的部分。发现了个低级错误。。。</li>
+</ol>
+
+<p>在<code>sendAppendEntries</code>函数中对<code>matchIndex</code>的更新出了问题，应该是减一，而不是加一。</p>
+
+<pre><code class="language-go">rf.nextIndex[server] = reply.NextIndex
+rf.matchIndex[server] = reply.NextIndex - 1
+
+</code></pre>
+
+<ol>
+<li>时不时会卡在第五个测试<code>no agreement if too many followers fail</code>？
+第五个测试是和领导人选举有关，经检查，在<code>RequestVote</code>RPC中，在投票确认的时候没有将重复投票的情况排除。
+<code>go
+if uptoDate == true &amp;&amp; rf.votedFor == -1 {
+	rf.grantedvoteCh &lt;- struct{}{}
+	reply.VoteGranted = true
+	rf.state = STATE_FLLOWER
+	rf.votedFor = args.CandidateId
+}
+</code>
+在之前的基础上加上了<code>rf.voteFor == -1</code>条件。</li>
+</ol>
+
+<p>之后再测试就不会卡在第五个测试点了。</p>
+
+<ol>
+<li>时不时会卡在测试<code>Figure 8(unreiable)</code>?</li>
+<li>时不时会卡在测试<code>leader backs up quickly over incorrect follower logs</code>？</li>
+<li>时不时会卡在测试<code>more persistence</code>？
+找了两天，终于发现问题在哪了。
+其实上面的测试卡住不动的原因都是因为我初始化的<code>Channel</code>都是无缓冲的，
+也就是说从无缓存的频道中读取消息会阻塞，直到有goroutine向该频道中发送消息;
+同理，向无缓存的频道中发送消息也会阻塞，直到有goroutine从频道中读取消息。</li>
+</ol>
+
+<p>有缓存的通道类似一个阻塞队列（采用环形数组实现）。当缓存未满时，向通道中发送消息时不会阻塞，
+当缓存满时，发送操作将被阻塞，直到有其他goroutine从中读取消息;相应的，当渠道中消息不为空时，
+读取消息不会出现阻塞，当渠道为空时，读取操作会造成阻塞，直到有goroutine向渠道中写入消息。</p>
+
+<p>果然，将通道改为有缓存的通道就不会再测试卡住不动了。</p>
+
+<pre><code class="language-go">rf.heartbeatCh = make(chan interface{}, 100)
+rf.leaderCh = make(chan interface{}, 100)
+rf.commitCh = make(chan interface{}, 100)
+rf.grantedvoteCh = make(chan interface{}, 100)
+</code></pre>
+
+<h2 id="测试-1">测试</h2>
+
+<pre><code class="language-shell">$ go test
+Test: initial election ...
+  ... Passed
+Test: election after network failure ...
+  ... Passed
+Test: basic agreement ...
+  ... Passed
+Test: agreement despite follower failure ...
+  ... Passed
+Test: no agreement if too many followers fail ...
+  ... Passed
+Test: concurrent Start()s ...
+  ... Passed
+Test: rejoin of partitioned leader ...
+  ... Passed
+Test: leader backs up quickly over incorrect follower logs ...
+  ... Passed
+Test: RPC counts aren't too high ...
+  ... Passed
+Test: basic persistence ...
+  ... Passed
+Test: more persistence ...
+  ... Passed
+Test: partitioned leader and one follower crash, leader restarts ...
+  ... Passed
+Test: Figure 8 ...
+  ... Passed
+Test: unreliable agreement ...
+  ... Passed
+Test: Figure 8 (unreliable) ...
+  ... Passed
+Test: churn ...
+  ... Passed
+Test: unreliable churn ...
+  ... Passed
+PASS
+ok  	raft	163.110s
+</code></pre>
               
             </div>
           </div>
@@ -259,7 +663,9 @@
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">面经</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/mit6.824/">MIT6.824</a>
+
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统</a>
 
                   </div>
                 
@@ -272,7 +678,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -280,7 +686,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/" data-tooltip="CMU数据库系统总结">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -340,7 +746,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -348,7 +754,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/" data-tooltip="CMU数据库系统总结">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -682,9 +1088,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft\/';
           
-            this.page.identifier = '\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/'
+            this.page.identifier = '\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft\/'
           
         };
         (function() {
