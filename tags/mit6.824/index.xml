@@ -6,10 +6,20 @@
     <description>Recent content in Mit6.824 on liu-jianhao&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 18 Nov 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 22 Nov 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://liu-jianhao.github.io/tags/mit6.824/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>MIT6.824分布式系统实验三之KV-Raft</title>
+      <link>https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/</link>
+      <pubDate>Thu, 22 Nov 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/</guid>
+      <description>&lt;p&gt;基于Raft算法的具有容错性的键值数据库的实现
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>MIT6.824分布式系统实验二之Raft</title>

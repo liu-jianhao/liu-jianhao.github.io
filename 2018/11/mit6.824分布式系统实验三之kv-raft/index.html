@@ -8,37 +8,37 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta name="description" content="基于Raft算法的具有容错性的键值数据库的实现
 ">
 
 
-<meta property="og:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta property="og:description" content="基于Raft算法的具有容错性的键值数据库的实现
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CMU数据库系统实验三之并发控制">
-<meta name="twitter:title" content="CMU数据库系统实验三之并发控制">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+<meta property="og:title" content="MIT6.824分布式系统实验三之KV-Raft">
+<meta name="twitter:title" content="MIT6.824分布式系统实验三之KV-Raft">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta property="og:description" content="基于Raft算法的具有容错性的键值数据库的实现
 ">
-<meta name="twitter:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta name="twitter:description" content="基于Raft算法的具有容错性的键值数据库的实现
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-10-25T00:00:00">
+    <meta property="article:published_time" content="2018-11-22T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-10-25T00:00:00">
+    <meta property="article:modified_time" content="2018-11-22T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="CMU-15-445">
+      <meta property="article:tag" content="MIT6.824">
     
-      <meta property="article:tag" content="数据库">
+      <meta property="article:tag" content="分布式系统">
     
   
 
@@ -59,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>CMU数据库系统实验三之并发控制</title>
+    <title>MIT6.824分布式系统实验三之KV-Raft</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -192,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      CMU数据库系统实验三之并发控制
+      MIT6.824分布式系统实验三之KV-Raft
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-10-25T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-11-22T00:00:00Z">
         
-  October 25, 2018
+  November 22, 2018
 
       </time>
     
@@ -211,234 +211,466 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>CMU-15-445 数据库系统实验三并发控制的实现
+              <p>基于Raft算法的具有容错性的键值数据库的实现
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>足足花了整整十天，终于这个课程最难的一个实验完成了，多线程果然是一个令人头疼的问题。</p>
+<p>因为有了之前lab2的惯性，lab3实现起来较为得心应手。</p>
 
-<p>下面就总结一下。</p>
+<p>这次实验是在Raft的基础上，加上了客户端的操作，对应于论文的第7、8节，而服务器端则是一个简单的键值数据库，
+服务端底层是用Raft算法，服务端提供RPC给客户端调用，而服务端要与底层Raft的日志进行交互，实现一个具有容错性的键值数据库。</p>
 
-<h1 id="并发控制">并发控制</h1>
+<p>下面是这次实验的实验报告。</p>
 
-<h2 id="任务一-lock-manager">任务一：Lock Manager</h2>
+<h1 id="基于raft的键值服务">基于Raft的键值服务</h1>
 
-<p>为了确保正确交叉事务的操作，DBMS将使用锁管理器（LM）来控制何时允许事务访问数据项。</p>
+<ul>
+<li>客户发送<code>Put()</code>、<code>Append()</code>、<code>Get()</code>RPCs给键值服务器</li>
+<li>一个客户可以发送一个RPC给任意一个键值服务器，即使该服务器不是<code>leader</code>也不必重新发送。
+如果该操作已经被提交到Raft日志里了，则报告给客户。如果该操作提交失败了，则报告给客户让其重试其他服务器。</li>
+<li>服务器只能通过Raft日志来相互交流。</li>
+</ul>
 
-<p>LM的基本思想是它维护一个关于活动事务当前持有的锁的内部数据结构。</p>
+<h2 id="parta-键值服务">PartA：键值服务</h2>
 
-<p>然后，事务在允许访问数据项之前向LM发出锁定请求。LM将授予对调用事务的锁定，阻止该事务或中止它。</p>
+<ol>
+<li>先完成<code>server.go</code>中的<code>Op</code>结构体。</li>
+</ol>
 
-<p>此任务要求您实现支持两阶段锁定（2PL）和严格两阶段锁定（S2PL）的元组级LM 。</p>
-
-<h2 id="知识笔记">知识笔记</h2>
-
-<h3 id="two-phase-locking-2pl">Two-phase locking - 2PL</h3>
-
-<p>简单来说就是，一个事务分为两个阶段，上升阶段(获取锁)和下降阶段(释放锁)，在上升阶段不能释放锁，在下降阶段不能获得锁。</p>
-
-<p>这样就保证了冲突可串行化，但是不能保证不会发生死锁，所以我门采用下面的方法来预防死锁。</p>
-
-<h3 id="strict-two-phase-locking-s2pl">Strict Two-phase locking - S2PL</h3>
-
-<p>在2PL的基础上，还要求事务持有的所有排他锁必须在事务提交后方可释放。</p>
-
-<p>这个要求保证未提交事务所写的任何数据在该事务提交之前均以排它锁方式加锁，防止其他事务读这些数据。</p>
-
-<h3 id="wait-die">wait-die</h3>
-
-<p>Lock Manager 将实施WAIT-DIE策略以预防死锁
-+ 该方案是基于非剥夺方法。当进程Pi请求的资源正被进程Pj占有时，只有当Pi的时间戳比进程Pj的时间戳小时，
-即Pi比Pj老时，Pi才能等待。否则Pi被卷回（roll-back），即死亡。
-+ 一个进程死亡后会释放他所占用的所有资源。在这里假定死亡的进程将带着同样的时间戳重新运行。
-+ 由于具有较小时间戳的进程才等待具有较大时间戳的进程，因此很显然死锁不会发生。当进程在等待特定的资源时，不会释放资源。
-+ 一旦一个进程释放一个资源，与这个资源相联系的等待队列中的一个进程将被激活。</p>
-
-<h3 id="lock-manager">Lock Manager</h3>
-
-<p>锁管理器可以实现为一个过程，它从事务接受消息并反馈消息。锁管理器过程针对锁请求消息返回授予锁消息，或者要求事务回滚的消息。
-解锁消息只需要得到一个确认回答，但可能引发为其他等待事务的授予锁消息。</p>
-
-<p>锁管理器为目前已加锁的每个数据项维护一个链表，每一个请求为链表中一条记录，按请求到达的顺序排序。</p>
-
-<p>它使用一个以数据项名称为索引的散列表来查找链表中的数据项，叫锁表。</p>
-
-<p><img src="https://github.com/liu-jianhao/CMU-15-445/blob/master/Lab3-Concurrency-Control/%E9%94%81%E8%A1%A8.png" alt="" /></p>
-
-<p>上图包含五个不同数据项的锁。已授予锁的事务用深色阴影方块表示，等待授予锁的事务用浅色方块。</p>
-
-<p>除了图上看到的，锁表还应当维护一个基于事务表示符的索引，这样它可以有效地确定给定事务持有的锁集。</p>
-
-<p>锁管理器处理请求：
-+ 当一条请求消息到达时，如果相应数据项的链表存在，在该链表末尾增加一个记录；否则，新建一个包含该请求记录的链表。
-+ 收到一个事务的解锁消息是，它将与该事务相对应的数据项链表中的记录删除，然后检查随后的记录，如果有，检查该请求能否被授权
-+ 如果一个事务中止，锁管理器删除该事务产生的正在等待加锁的所有请求。
-这个算法保证了锁请求无饿死现象，因为在先前接受到的请求正在等待加锁时，后来者不可能获得授权。</p>
-
-<h2 id="任务一调试">任务一调试</h2>
-
-<p>任务一还算比较简单，主要先将锁表的数据结构想好，之后的操作基本上就水到渠成了，但毕竟是多线程的并发，难免会有问题。</p>
-
-<pre><code>$ test/lock_manager_test
-Running main() from gmock_main.cc
-[==========] Running 9 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 9 tests from LockManagerTest
-[ RUN      ] LockManagerTest.BasicTest
-[       OK ] LockManagerTest.BasicTest (1 ms)
-[ RUN      ] LockManagerTest.BasicShareTest
-[       OK ] LockManagerTest.BasicShareTest (100 ms)
-[ RUN      ] LockManagerTest.BasicExclusiveTest
-[       OK ] LockManagerTest.BasicExclusiveTest (101 ms)
-[ RUN      ] LockManagerTest.BasicUpdateTest
-^C
+<pre><code class="language-go">type Op struct {
+	// &quot;Get&quot; &quot;Put&quot; &quot;Append&quot;
+	Type 	string
+	Key 	string
+	Value 	string
+	// RaftKV的Id
+	Id 		int64
+	// 指令Id，用来标识每一条指令，防止指令重复执行
+	ReqId  	int
+}
 </code></pre>
 
-<p>能通过三个测试，但是最后一样还是卡住了。</p>
+<ol>
+<li>完成<code>server.go</code>中的<code>RaftKV</code>结构体</li>
+</ol>
 
-<p>找了快一个小时，终于找到了：</p>
+<pre><code class="language-go">type RaftKV struct {
+	mu      sync.Mutex
+	me      int
+	rf      *raft.Raft
+	applyCh chan raft.ApplyMsg
 
-<pre><code class="language-cpp">if(it == lock_table_[rid].list.begin() || it-&gt;mode == LockMode::EXCLUSIVE)
-{
-  cond.notify_all();
+	maxraftstate int // snapshot if log grows this big
+
+	// Your definitions here.
+	// 数据库，存储数据
+	db 		map[string]string
+	// map[Id]ReqId
+	ack		map[int64]int 
+	// map[msg.Index]chan Op
+	result 	map[int]chan Op
+}
+</code></pre>
+
+<ol>
+<li><code>server.go</code>里的主循环：<code>StartKVServer()</code></li>
+</ol>
+
+<pre><code class="language-go">func StartKVServer(servers []*labrpc.ClientEnd, me int, persister *raft.Persister, maxraftstate int) *RaftKV {
+	// call gob.Register on structures you want
+	// Go's RPC library to marshall/unmarshall.
+	gob.Register(Op{})
+
+	kv := new(RaftKV)
+	kv.me = me
+	kv.maxraftstate = maxraftstate
+
+	// Your initialization code here.
+
+	kv.applyCh = make(chan raft.ApplyMsg)
+	kv.rf = raft.Make(servers, me, persister, kv.applyCh)
+
+	kv.db = make(map[string]string)
+	kv.ack = make(map[int64]int)
+	kv.result = make(map[int]chan Op)
+
+	// 由于该函数要快速返回，所以使用goroutine
+	go func() {
+		for {
+			// 从Raft中传来的日志
+			msg := &lt;- kv.applyCh
+			// .(type)是类型断言，将接口类型的值Command转换成Op
+			op := msg.Command.(Op)
+
+			kv.mu.Lock()
+			
+			v, ok := kv.ack[op.Id]
+			// 检查ack[op.Id]中是否已经有值，如果有值，请求的值比之前的ReqId大就说明需要写入db
+			if !(ok &amp;&amp; v &gt;= op.ReqId) {
+				if op.Type == &quot;Put&quot; {
+					kv.db[op.Key] = op.Value
+				} else if op.Type == &quot;Append&quot; {
+					kv.db[op.Key] += op.Value
+				}
+
+				// 更新ReqId
+				kv.ack[op.Id] = op.ReqId
+			}
+
+			ch, ok := kv.result[msg.Index]
+			if ok {
+				// 如果通道存在就传送请求op
+				ch &lt;- op
+			} else {
+				kv.result[msg.Index] = make(chan Op, 1)
+			}
+			
+			kv.mu.Unlock()
+		}
+	}()
+
+	return kv
+}
+</code></pre>
+
+<ol>
+<li><code>command.go</code>里的结构体添加成员</li>
+</ol>
+
+<pre><code class="language-go">// Put or Append
+type PutAppendArgs struct {
+	// You'll have to add definitions here.
+	Key   string
+	Value string
+	Op    string // &quot;Put&quot; or &quot;Append&quot;
+	// You'll have to add definitions here.
+	// Field names must start with capital letters,
+	// otherwise RPC will break.
+	Id		int64
+	ReqID	int	
 }
 
-lock_table_[rid].list.erase(it);
+type GetArgs struct {
+	Key 	string
+	// You'll have to add definitions here.
+	Id		int64
+	ReqID	int	
+}
 </code></pre>
 
-<p>这个是改过之后的，之前错误的代码是将erase语句写在了其上面的if语句之前，因为erase会让迭代器失效，所以后面的操作肯定就是错误的了。</p>
+<ol>
+<li><code>server.go</code>里提供给client的RPC操作：<code>Get</code>和<code>PutAppend</code></li>
+</ol>
 
-<p>然后就通过测试了：</p>
+<p>这两个实现都很简单，都是先构造<code>Op</code>对象，然后与将该指令传到底层的<code>Raft</code>，等待主循环中的回应。</p>
 
-<pre><code>[==========] Running 9 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 9 tests from LockManagerTest
-[ RUN      ] LockManagerTest.BasicTest
-[       OK ] LockManagerTest.BasicTest (0 ms)
-[ RUN      ] LockManagerTest.BasicShareTest
-[       OK ] LockManagerTest.BasicShareTest (101 ms)
-[ RUN      ] LockManagerTest.BasicExclusiveTest
-[       OK ] LockManagerTest.BasicExclusiveTest (100 ms)
-[ RUN      ] LockManagerTest.BasicUpdateTest
-[       OK ] LockManagerTest.BasicUpdateTest (101 ms)
-[ RUN      ] LockManagerTest.BasicTest1
-[       OK ] LockManagerTest.BasicTest1 (100 ms)
-[ RUN      ] LockManagerTest.BasicTest2
-[       OK ] LockManagerTest.BasicTest2 (200 ms)
-[ RUN      ] LockManagerTest.DeadlockTest1
-[       OK ] LockManagerTest.DeadlockTest1 (0 ms)
-[ RUN      ] LockManagerTest.DeadlockTest2
-[       OK ] LockManagerTest.DeadlockTest2 (1 ms)
-[ RUN      ] LockManagerTest.DeadlockTest3
-[       OK ] LockManagerTest.DeadlockTest3 (500 ms)
-[----------] 9 tests from LockManagerTest (1104 ms total)
+<pre><code class="language-go">// 添加指令到底层Raft的日志
+func (kv *RaftKV) AppendEntryToLog(entry Op) bool {
+	index, _, isLeader := kv.rf.Start(entry)
+	if !isLeader {
+		return false
+	}
 
-[----------] Global test environment tear-down
-[==========] 9 tests from 1 test case ran. (1104 ms total)
-[  PASSED  ] 9 tests.
+	kv.mu.Lock()
+	ch, ok := kv.result[index]
+	if !ok {
+		ch = make(chan Op, 1)
+		kv.result[index] = ch
+	}
+	kv.mu.Unlock()
+
+	select {
+	// 如果相等说明指令成功写入Raft日志且已经提交了
+	case op := &lt;-ch:
+		return op == entry
+	// 超时
+	case &lt;- time.After(1000 * time.Millisecond):
+		return false
+	}
+}
+
+
+func (kv *RaftKV) Get(args *GetArgs, reply *GetReply) {
+	// Your code here.
+	op := Op{
+		Type: 	&quot;Get&quot;,
+		Key:	args.Key,
+		Id:		args.Id,
+		ReqId:	args.ReqID,
+	}
+
+	ok := kv.AppendEntryToLog(op)
+	if ok {
+		reply.WrongLeader = false
+		reply.Err = OK
+		
+		// 从db中取值
+		reply.Value = kv.db[args.Key]
+	} else {
+		reply.WrongLeader = true
+	}
+}
+
+func (kv *RaftKV) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
+	// Your code here.
+	op := Op{
+		Type: 	args.Op,
+		Key:	args.Key,
+		Value:	args.Value,
+		Id:		args.Id,
+		ReqId:	args.ReqID,
+	}
+
+	ok := kv.AppendEntryToLog(op)
+	if ok {
+		reply.WrongLeader = false
+		reply.Err = OK
+	} else {
+		reply.WrongLeader = true
+	}
+}
 </code></pre>
 
-<h2 id="任务二-并发索引">任务二：并发索引</h2>
+<ol>
+<li><code>client.go</code></li>
+</ol>
 
-<h3 id="提示">提示</h3>
+<p>client的实现很简单</p>
 
-<ul>
-<li>不能使用全局范围锁存器来保护你的数据结构，也就是说，无法锁定整个索引，只能在操作完成时解锁锁存器。</li>
-<li>提供了读写锁存器的实现<code>src/include/common/rwmutex.h</code>。并且已经在文件下添加了辅助函数来获取和释放<code>latch</code>(<code>src/include/page / page.h</code>)</li>
-<li>必须使用名为<code>transaction</code>的传入指针参数。它提供了在遍历B +树时存储已获取锁存页面的方法，以及存储在<code>Remove</code>操作期间删除的页面的方法。我们的建议是仔细查看<code>FindLeafPage()</code>B+树中的方法，你可能想改变以前的实现并在这个特定方法中添加<code>latch crabbing</code>的逻辑。
-+　缓冲池管理器中<code>FetchPage</code>的返回值是一个指向<code>Page</code>的实例<code>src/include/page/page.h</code>的指针。你可以获得一个Page的锁，但你不能获得B+Tree节点上的锁（既不是内部节点也不是叶子节点）</li>
-</ul>
+<pre><code class="language-go">type Clerk struct {
+	servers []*labrpc.ClientEnd
+	// You will have to modify this struct.
+	id 		int64
+	// 唯一的指令Id
+	reqid	int
+	// 保护reqid
+	mu 		sync.Mutex
+}
 
-<h3 id="常见的问题">常见的问题</h3>
-
-<ul>
-<li>仔细考虑<code>UnpinPage(page_id, is_dirty)</code>缓冲池管理器类中的<code>UnLock()</code>方法与页面类中的方法之间的顺序和关系。在从缓冲池取消固定同一页面之前，必须释放该页面上的锁存器。</li>
-<li>如果你正确地实现并发B+树索引，那么每个线程将始终从根到底获取锁存器。释放闩锁时，请确保遵循相同的顺序（也称为从根到下）以避免可能的死锁情况。</li>
-<li>其中一个例子是插入和删除时，成员变量<code>root_page_id（src/include/index/b_plus_tree.h）</code>也将被更新。您有责任防止此共享变量的并发更新（提示：在B +树索引中添加一个抽象层，您可以使用std::mutex来保护此变量）</li>
-</ul>
-
-<h2 id="任务二调试">任务二调试</h2>
-
-<p>前面两次实验都需要花很多时间来调试，这次也不例外。。。</p>
-
-<pre><code class="language-shell">$ test/b_plus_tree_concurrent_test 
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[1]    1189 segmentation fault  test/b_plus_tree_concurrent_test
+func MakeClerk(servers []*labrpc.ClientEnd) *Clerk {
+	ck := new(Clerk)
+	ck.servers = servers
+	// You'll have to add code here.
+	ck.id = nrand()
+	ck.reqid = 0
+	return ck
+}
 </code></pre>
 
-<p>用<code>valgrand</code>检查得到下面结果(部分)：</p>
+<p>之后就是<code>Get</code>和<code>PutAppend</code>操作，直接构造<code>args</code>然后通过调用server的RPC传入该参数即可。</p>
 
-<pre><code>==25834==    at 0x4F47E4A: cmudb::BPlusTreeInternalPage&lt;cmudb::GenericKey&lt;8ul&gt;, int, cmudb::GenericComparator&lt;8ul&gt; &gt;::Lookup(cmudb::GenericKey&lt;8ul&gt; const&amp;, cmudb::GenericComparator&lt;8ul&gt; const&amp;) const (in /home/liu/Desktop/CMU/CMU-15-445/Lab/build/lib/libvtable.so)
+<pre><code class="language-go">func (ck *Clerk) Get(key string) string {
+	// You will have to modify this function.
+	var args GetArgs
+	args.Key = key
+	args.Id = ck.id
+
+	ck.mu.Lock()
+	args.ReqID = ck.reqid
+	ck.reqid++
+	ck.mu.Unlock()
+
+	for {
+		for _, v := range ck.servers {
+			var reply GetReply
+			ok := v.Call(&quot;RaftKV.Get&quot;, &amp;args, &amp;reply)
+			if ok &amp;&amp; reply.WrongLeader == false {
+				return reply.Value
+			}
+		}
+	}
+}
+
+func (ck *Clerk) PutAppend(key string, value string, op string) {
+	// You will have to modify this function.
+	var args PutAppendArgs
+	args.Key = key
+	args.Value = value
+	args.Op = op
+	args.Id = ck.id
+
+	ck.mu.Lock()
+	args.ReqID = ck.reqid
+	ck.reqid++
+	ck.mu.Unlock()
+
+	for {
+		for _, v := range ck.servers {
+			var reply PutAppendReply
+			ok := v.Call(&quot;RaftKV.PutAppend&quot;, &amp;args, &amp;reply)
+			if ok &amp;&amp; reply.WrongLeader == false {
+				return 
+			}
+		}
+	}
+}
 </code></pre>
 
-<p>可以看到是在之前内部节点页面中的<code>Lookup</code>函数出了问题</p>
+<h2 id="测试">测试</h2>
 
-<p>检查一遍<code>Lookup</code>函数，猜测应该是没有处理边界条件，加上之后，再次编译运行</p>
+<p>能通过快照之前所有的测试：</p>
 
-<pre><code class="language-shell">$ test/b_plus_tree_concurrent_test
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-b_plus_tree_concurrent_test: /home/liu/Desktop/CMU/CMU-15-445/Lab/src/index/b_plus_tree.cpp:670: cmudb::BPlusTreeLeafPage&lt;KeyType, ValueType, KeyComparator&gt;* cmudb::BPlusTree&lt;KeyType, ValueType, KeyComparator&gt;::FindLeafPage(const KeyType&amp;, bool, cmudb::Operation, cmudb::Transaction*) [with KeyType = cmudb::GenericKey&lt;8&gt;; ValueType = cmudb::RID; KeyComparator = cmudb::GenericComparator&lt;8&gt;]: Assertion `node-&gt;GetParentPageId() == parent_page_id' failed.
+<pre><code class="language-shell">$ go test
+Test: One client ...
+  ... Passed
+Test: concurrent clients ...
+  ... Passed
+Test: unreliable ...
+  ... Passed
+Test: Concurrent Append to same key, unreliable ...
+  ... Passed
+Test: Progress in majority ...
+  ... Passed
+Test: No progress in minority ...
+  ... Passed
+Test: Completion after heal ...
+  ... Passed
+Test: many partitions ...
+2018/11/19 13:37:31 Warning: client 0 managed to perform only 6 put operations in 1 sec?
+  ... Passed
+Test: many partitions, many clients ...
+  ... Passed
+Test: persistence with one client ...
+  ... Passed
+Test: persistence with concurrent clients ...
+  ... Passed
+Test: persistence with concurrent clients, unreliable ...
+  ... Passed
+Test: persistence with concurrent clients and repartitioning servers...
+2018/11/19 13:39:23 Warning: client 2 managed to perform only 9 put operations in 1 sec?
+  ... Passed
+Test: persistence with concurrent clients and repartitioning servers, unreliable...
+2018/11/19 13:39:51 Warning: client 0 managed to perform only 8 put operations in 1 sec?
+2018/11/19 13:40:12 Warning: client 3 managed to perform only 8 put operations in 1 sec?
+  ... Passed
 </code></pre>
 
-<p>偶尔会出现上面的情况，或者直接卡死在第一个测试。重新检查实验二中写的代码，修修补补了一些代码。再次编译运行</p>
+<h2 id="partb-日志压缩">PartB：日志压缩</h2>
 
-<pre><code>$ test/b_plus_tree_concurrent_test 
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[       OK ] BPlusTreeConcurrentTest.InsertTest1 (5 ms)
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest2
-[       OK ] BPlusTreeConcurrentTest.InsertTest2 (2 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest1
-[1]    2207 segmentation fault  test/b_plus_tree_concurrent_test
+<p>快照是实现日志压缩的最简单的方式。</p>
+
+<h2 id="调试">调试</h2>
+
+<ol>
+<li><code>InstallSnapshot RPC</code>出现<code>out of range</code>的错误？
+由于我没有完全按照论文中安装快照RPC中的参数，论文中是用<code>offset</code>来代表当前日志的偏移量，
+而我直接在<code>LogEntry</code>结构体中添加一个成员<code>LogIndex</code>来代替<code>offset</code>。</li>
+</ol>
+
+<p>由于之前的代码没有修改完整，所以导致对日志的操作时出现下标溢出。</p>
+
+<p>在对日志操作的各个地方都要修改，用一个<code>baseIndex := rf.log[0].LogIndex</code>来作为每个日志的零点。</p>
+
+<ol>
+<li>卡死在<code>InstallSnapshot RPC</code>？
+这个错误在lab2扔记忆犹新，因此我特意检查了各个Channel，发现<code>applyCh</code>是一个阻塞通道，
+果断修改为非阻塞队列。但是依旧卡死。。。</li>
+</ol>
+
+<p>用lab2的测试结果<code>basic agreement</code>就已经fail了。</p>
+
+<p>说明修改了lab2的一些代码中出了问题。经检查，发现了一个低级错误：在<code>Start()</code>中的
+初始化日志没有初始化新添加的<code>LogIndex</code>成员，所以在之后<code>baseIndex</code>也会使用错误。</p>
+
+<p>修改完之后就能通过PartB的第一个测试<code>InstallSnapshot RPC</code>。</p>
+
+<ol>
+<li>通不过测试<code>persistence with one client and snapshots</code>
+错误说明：
+<code>
+2018/11/21 19:03:22 get wrong value, key 0, wanted:
+x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 yx 0 21 yx 0 22 yx 0 23 yx 0 24 yx 0 25 yx 0 26 y
+, got
+x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 y
+exit status 1
+</code>
+根据测试给出的提示，是日志缺少了。</li>
+</ol>
+
+<p>找了我一整天，终于发现了bug了。。。而且还是很低级的bug：
+在<code>readSnapshot()</code>函数中，以下是正确做法：</p>
+
+<pre><code class="language-go">d.Decode(&amp;LastIncludedIndex)
+d.Decode(&amp;LastIncludedTerm)
 </code></pre>
 
-<p>现在只会出现上面的情况，直接崩溃。第三个测试是删除的测试，再去检查有关删除的函数。</p>
+<p>之前我忘了加<code>&amp;</code>，导致decode失败，之后的操作必然会受影响。</p>
 
-<p>检查后发现<code>AdjustRoot</code>这个函数没有考虑删除完最后一个元素后的情况，补充之后，能通过全部测试了。</p>
+<h2 id="测试-1">测试</h2>
 
-<pre><code>$ test/b_plus_tree_concurrent_test                                                                                                                1 ↵
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[       OK ] BPlusTreeConcurrentTest.InsertTest1 (3 ms)
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest2
-[       OK ] BPlusTreeConcurrentTest.InsertTest2 (1 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest1
-[       OK ] BPlusTreeConcurrentTest.DeleteTest1 (0 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest2
-[       OK ] BPlusTreeConcurrentTest.DeleteTest2 (1 ms)
-[ RUN      ] BPlusTreeConcurrentTest.MixTest
-[       OK ] BPlusTreeConcurrentTest.MixTest (0 ms)
-[ RUN      ] BPlusTreeConcurrentTest.MixTest2
-[       OK ] BPlusTreeConcurrentTest.MixTest2 (4 ms)
-[----------] 6 tests from BPlusTreeConcurrentTest (9 ms total)
+<pre><code class="language-shell">$ go test
+Test: One client ...
+  ... Passed
+Test: concurrent clients ...
+  ... Passed
+Test: unreliable ...
+  ... Passed
+Test: Concurrent Append to same key, unreliable ...
+  ... Passed
+Test: Progress in majority ...
+  ... Passed
+Test: No progress in minority ...
+  ... Passed
+Test: Completion after heal ...
+  ... Passed
+Test: many partitions ...
+2018/11/21 21:24:22 Warning: client 0 managed to perform only 7 put operations in 1 sec?
+2018/11/21 21:24:30 Warning: client 0 managed to perform only 7 put operations in 1 sec?
+  ... Passed
+Test: many partitions, many clients ...
+2018/11/21 21:24:45 Warning: client 1 managed to perform only 8 put operations in 1 sec?
+  ... Passed
+Test: persistence with one client ...
+  ... Passed
+Test: persistence with concurrent clients ...
+  ... Passed
+Test: persistence with concurrent clients, unreliable ...
+  ... Passed
+Test: persistence with concurrent clients and repartitioning servers...
+  ... Passed
+Test: persistence with concurrent clients and repartitioning servers, unreliable...
+2018/11/21 21:26:45 Warning: client 1 managed to perform only 7 put operations in 1 sec?
+2018/11/21 21:26:45 Warning: client 2 managed to perform only 5 put operations in 1 sec?
+2018/11/21 21:26:45 Warning: client 3 managed to perform only 7 put operations in 1 sec?
+2018/11/21 21:26:46 Warning: client 4 managed to perform only 2 put operations in 1 sec?
+2018/11/21 21:26:54 Warning: client 0 managed to perform only 4 put operations in 1 sec?
+2018/11/21 21:26:55 Warning: client 1 managed to perform only 8 put operations in 1 sec?
+2018/11/21 21:26:55 Warning: client 2 managed to perform only 7 put operations in 1 sec?
+2018/11/21 21:26:56 Warning: client 3 managed to perform only 8 put operations in 1 sec?
+2018/11/21 21:26:56 Warning: client 4 managed to perform only 9 put operations in 1 sec?
+2018/11/21 21:27:06 Warning: client 3 managed to perform only 9 put operations in 1 sec?
+  ... Passed
 
-[----------] Global test environment tear-down
-[==========] 6 tests from 1 test case ran. (9 ms total)
-[  PASSED  ] 6 tests.
+Test: InstallSnapshot RPC ...
+  ... Passed
+Test: persistence with one client and snapshots ...
+  ... Passed
+Test: persistence with several clients and snapshots ...
+  ... Passed
+Test: persistence with several clients, snapshots, unreliable ...
+  ... Passed
+Test: persistence with several clients, failures, and snapshots, unreliable ...
+  ... Passed
+Test: persistence with several clients, failures, and snapshots, unreliable and partitions ...
+2018/11/21 21:28:50 Warning: client 1 managed to perform only 9 put operations in 1 sec?
+2018/11/21 21:28:51 Warning: client 3 managed to perform only 8 put operations in 1 sec?
+2018/11/21 21:28:51 Warning: client 4 managed to perform only 8 put operations in 1 sec?
+2018/11/21 21:29:09 Warning: client 0 managed to perform only 8 put operations in 1 sec?
+2018/11/21 21:29:11 Warning: client 4 managed to perform only 6 put operations in 1 sec?
+  ... Passed
+PASS
+ok  	kvraft	351.767s
 </code></pre>
 
 <h1 id="总结">总结</h1>
 
-<p>任务一算是比较简单的，只要理解锁管理器里的锁表的作用和采用适合的数据结构就不难。</p>
+<p>接着实验二做实验三感觉很好。</p>
 
-<p>难的是第二个任务，要支持并发访问，就要推翻一些在实验二中的一些代码了，要脱胎换骨了。</p>
+<p>A部分主要是理解客户端要怎么与服务端交互并且服务端怎么与Raft交互，理清楚之后实现就很简单了。</p>
 
-<p>正是因为难实验才有意义，这样才能学到东西，还剩最后一个实验了：日志和恢复。</p>
+<p>B部分则要搞清楚日志要怎么删除，之前的有关日志的操作基本都要修改了。</p>
+
+<p>由于犯了两个低级错误，浪费了好多时间，调试的能力还需加强啊。</p>
               
             </div>
           </div>
@@ -450,9 +682,9 @@ Running main() from gmock_main.cc
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-445/">CMU-15-445</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/mit6.824/">MIT6.824</a>
 
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统</a>
 
                   </div>
                 
@@ -465,7 +697,7 @@ Running main() from gmock_main.cc
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/" data-tooltip="CMU数据库系统实验四之日志和恢复">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -473,7 +705,7 @@ Running main() from gmock_main.cc
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/" data-tooltip="MIT6.824分布式系统实验二之Raft">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -533,7 +765,7 @@ Running main() from gmock_main.cc
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/" data-tooltip="CMU数据库系统实验四之日志和恢复">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -541,7 +773,7 @@ Running main() from gmock_main.cc
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/" data-tooltip="MIT6.824分布式系统实验二之Raft">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -875,9 +1107,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/10\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft\/';
           
-            this.page.identifier = '\/2018\/10\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6\/'
+            this.page.identifier = '\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft\/'
           
         };
         (function() {
