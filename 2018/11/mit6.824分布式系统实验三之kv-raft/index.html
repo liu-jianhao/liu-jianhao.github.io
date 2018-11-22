@@ -575,17 +575,19 @@ Test: persistence with concurrent clients and repartitioning servers, unreliable
 <p>修改完之后就能通过PartB的第一个测试<code>InstallSnapshot RPC</code>。</p>
 
 <ol>
-<li>通不过测试<code>persistence with one client and snapshots</code>
-错误说明：
-<code>
-2018/11/21 19:03:22 get wrong value, key 0, wanted:
+<li>通不过测试<code>persistence with one client and snapshots</code></li>
+</ol>
+
+<p>错误说明：</p>
+
+<pre><code>2018/11/21 19:03:22 get wrong value, key 0, wanted:
 x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 yx 0 21 yx 0 22 yx 0 23 yx 0 24 yx 0 25 yx 0 26 y
 , got
 x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 y
 exit status 1
-</code>
-根据测试给出的提示，是日志缺少了。</li>
-</ol>
+</code></pre>
+
+<p>根据测试给出的提示，是日志缺少了。</p>
 
 <p>找了我一整天，终于发现了bug了。。。而且还是很低级的bug：
 在<code>readSnapshot()</code>函数中，以下是正确做法：</p>
