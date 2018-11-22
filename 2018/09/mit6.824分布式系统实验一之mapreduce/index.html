@@ -8,29 +8,29 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="分布式一致性算法Raft的实现
+<meta name="description" content="分布式计算算法MapReduce的实现
 ">
 
 
-<meta property="og:description" content="分布式一致性算法Raft的实现
+<meta property="og:description" content="分布式计算算法MapReduce的实现
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MIT6.824分布式系统实验二之Raft">
-<meta name="twitter:title" content="MIT6.824分布式系统实验二之Raft">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
+<meta property="og:title" content="MIT6.824分布式系统实验一之MapReduce">
+<meta name="twitter:title" content="MIT6.824分布式系统实验一之MapReduce">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/09/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8Bmapreduce/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/09/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8Bmapreduce/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="分布式一致性算法Raft的实现
+<meta property="og:description" content="分布式计算算法MapReduce的实现
 ">
-<meta name="twitter:description" content="分布式一致性算法Raft的实现
+<meta name="twitter:description" content="分布式计算算法MapReduce的实现
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-11-18T00:00:00">
+    <meta property="article:published_time" content="2018-09-02T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-11-18T00:00:00">
+    <meta property="article:modified_time" content="2018-09-02T00:00:00">
   
   
   
@@ -59,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>MIT6.824分布式系统实验二之Raft</title>
+    <title>MIT6.824分布式系统实验一之MapReduce</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/09/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8Bmapreduce/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -192,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      MIT6.824分布式系统实验二之Raft
+      MIT6.824分布式系统实验一之MapReduce
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-11-18T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-09-02T00:00:00Z">
         
-  November 18, 2018
+  September 2, 2018
 
       </time>
     
@@ -211,461 +211,354 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>分布式一致性算法Raft的实现
+              <p>分布式计算算法MapReduce的实现
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>MIT6.824这门课本来是从暑假就开始做的，但是由于各种原因，导致进度缓慢，尤其是实验二卡了很久，
-在学完CMU的数据库课程后就重新开始实验二，这次学的更深入且认真。</p>
+<p>这次实验是在之前暑假的时候完成的，由于时间久远，只记得当时做了好久，一脸懵逼。</p>
 
-<p>下面是该实验的实验报告。<a href="https://github.com/liu-jianhao/simple-raft">代码</a></p>
+<p>现在重新回顾了MapReduce的论文和这次实验，比起之后的实验算是不难的了。</p>
 
-<h1 id="raft">Raft</h1>
+<p>下面是该实验的实验报告。</p>
 
-<p>实验之前一定要仔细阅读<a href="http://nil.csail.mit.edu/6.824/2016/papers/raft-extended.pdf">《In Search of an Understandable Consensus Algorithm (Extended Version)》</a>，尤其是第5节，实现代码的时候要按照论文的内容。</p>
+<h2 id="实验1介绍">实验1介绍</h2>
 
-<h2 id="raft-part1-领导人选举">Raft_part1——领导人选举</h2>
+<p>在lab1中我们将建立一个MapReduce 库，学习如何使用 Go 建立一个容错的分布式系统。在 Part A 我们需要写一个简单的 MapReduce 程序。在 Part B我们需要实现一个 Master 为 MapReduce 的 Workers 安排任务，并处理 Workers 出现的错误。</p>
 
-<p>在这一部分，有关日志复制的部分暂时不会被实现，留到第二部分</p>
-
-<h3 id="框架">框架</h3>
-
-<ul>
-<li><code>Raft</code>这个结构体是每一个服务器持有一个的，作为状态机存在</li>
-<li>在这个实验中只有两个RPC，一个是请求投票的<code>ReqestVote</code>，另一个是修改日志(附带心跳)的<code>AppendEntries</code></li>
-<li>每个服务器的功能都一样，只是状态不同而已，状态只能是跟随者、候选人或者领导者的其中一个</li>
-<li>每个服务器通过RPC调用<code>sendXXX</code>函数来调用其他服务器的<code>XXX</code>函数</li>
-</ul>
-
-<h3 id="实现步骤">实现步骤</h3>
+<h2 id="代码执行流程">代码执行流程</h2>
 
 <ol>
-<li>首先根据论文完善Raft结构体中必要的成员</li>
-</ol>
-
-<pre><code class="language-go">type Raft struct {
-	mu        sync.Mutex
-	peers     []*labrpc.ClientEnd
-	persister *Persister
-	me        int // index into peers[]
-
-	// 当前服务器状态
-	state int
-	// 候选人获得的票数
-	voteAcquired int
-	// 传播心跳的通道
-	heartbeatCh chan interface{}
-	// 当候选人赢得了选举就会利用这个通道传送消息
-	leaderCh chan interface{}
-
-	/*
-	 * 全部服务器上面的可持久化状态:
-	 *  currentTerm 	服务器看到的最近Term(第一次启动的时候为0,后面单调递增)
-	 *  votedFor     	当前Term收到的投票候选 (如果没有就为null)
-	 */
-	currentTerm int
-	votedFor int
-}
-</code></pre>
-
-<p>每个服务器只可能存在一下三个状态之一：</p>
-
-<pre><code class="language-go">const (
-	STATE_FLLOWER = 0
-	STATE_CANDIDATE = 1
-	STATE_LEADER = 2
-)
-</code></pre>
-
-<ol>
-<li>继续根据论文完善在RPC之间传递和返回的参数一些结构体</li>
-<li>选举相关</li>
-</ol>
-
-<pre><code class="language-go">type RequestVoteArgs struct {
-	// 候选人的term
-	Term int
-	// 候选人在节点数组中的下标
-	CandidateId int
-}
-
-type RequestVoteReply struct {
-	// currnetTerm，用来给候选人更新term
-	Term int
-	// true就说明候选人得到了选票
-	VoteGranted bool
-}
-</code></pre>
-
-<ul>
-<li>复制日志相关</li>
-</ul>
-
-<pre><code class="language-go">type AppendEntriesArgs struct {
-	// 领导人的term
-	Term int
-	// 领导人所在的下标
-	LeaderId int
-}
-
-type AppendEntriesReply struct {
-	// currentTerm，用来给领导人更新term
-	Term int
-	// true，说明和跟随者的日志匹配
-	Success bool
-}
-</code></pre>
-
-<ol>
-<li>这一部分的重头戏，实现Make()方法</li>
-</ol>
-
-<pre><code class="language-go">func Make(peers []*labrpc.ClientEnd, me int,
-	persister *Persister, applyCh chan ApplyMsg) *Raft {
-	rf := &amp;Raft{}
-	rf.peers = peers
-	rf.persister = persister
-	rf.me = me
-
-	// 初始化
-	rf.state = STATE_FLLOWER
-	rf.votedFor = -1
-	rf.currentTerm = 0
-	rf.heartbeatCh = make(chan interface{})
-	rf.leaderCh = make(chan interface{})
-
-	// initialize from state persisted before a crash
-	rf.readPersist(persister.ReadRaftState())
-
-	// 状态机循环
-	go func() {
-		for {
-			switch rf.state {
-			case STATE_FLLOWER:
-				select {
-				// 接收到心跳或者超时就变为候选者
-				case &lt;- rf.heartbeatCh:
-				case &lt;- time.After(time.Duration(rand.Int63() % 333 + 550) * time.Millisecond):
-					rf.state = STATE_CANDIDATE
-				}	
-
-			case STATE_LEADER:
-				// 如果是领导人就执行复制日志(携带心跳)的操作
-				rf.broadcastAppendEntries()
-				time.Sleep(50 * time.Millisecond)
-
-			case STATE_CANDIDATE:
-				// 候选人要准备投票选举
-				rf.mu.Lock()
-				rf.currentTerm++
-				// 先投给自己一票
-				rf.votedFor = rf.me
-				rf.voteAcquired = 1
-				rf.mu.Unlock()
-				go rf.broadcastRequestVote()
-				select {
-				// 超时或者接收到心跳(其他节点先成为领导人)就变为跟随者
-				case &lt;- time.After(time.Duration(rand.Int63() % 333 + 550) * time.Millisecond):
-				case &lt;- rf.heartbeatCh:
-					rf.state = STATE_FLLOWER	
-				// 从leaderCh通道接收到消息说明赢得选举，成为领导人
-				case &lt;- rf.leaderCh:
-					rf.state = STATE_LEADER
-				}	
-			}
-		}
-	}()
-
-	return rf
-}
-</code></pre>
-
-<ol>
-<li>实现在第3步中使用却没实现的两个操作：领导人选举和日志复制</li>
-<li>领导人选举</li>
-</ol>
-
-<p>下面这个是RPC函数，用来给候选人调用的，然后在每个服务器执行</p>
-
-<pre><code class="language-go">func (rf *Raft) RequestVote(args RequestVoteArgs, reply *RequestVoteReply) {
-	// Your code here.
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
-	reply.Term = rf.currentTerm
-
-	// 如果候选人的term比自己的还小，则不给该候选人投票
-	if args.Term &lt; rf.currentTerm {
-		reply.VoteGranted = false
-		return
-	} else if args.Term &gt; rf.currentTerm {
-		rf.currentTerm = args.Term
-		rf.state = STATE_FLLOWER
-		reply.VoteGranted = true
-	}
-}
-</code></pre>
-
-<pre><code class="language-go">func (rf *Raft) sendRequestVote(server int, args RequestVoteArgs, reply *RequestVoteReply) bool {
-	// 调用RPC
-	ok := rf.peers[server].Call(&quot;Raft.RequestVote&quot;, args, reply)
-
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
-	if ok {
-		term := rf.currentTerm
-		if rf.state != STATE_CANDIDATE {
-			return ok
-		} else if args.Term != term {
-			return ok
-		}
-
-		// 更新自己的term
-		if reply.Term &gt; term {
-			rf.currentTerm = reply.Term
-			rf.state = STATE_FLLOWER
-			rf.votedFor = -1
-		}
-
-		// 统计选票
-		if reply.VoteGranted == true {
-			rf.voteAcquired++
-			if rf.voteAcquired &gt; len(rf.peers)/2 {
-				rf.state = STATE_FLLOWER
-				rf.leaderCh &lt;- true
-			}
-		}
-	}
-
-	return ok
-}
-
-func (rf *Raft) broadcastRequestVote() {
-	// 遍历整个Raft服务器数组，执行领导人选举
-	for i := range rf.peers {
-		if i != rf.me {	
-			// 初始化要传给RPC调用的函数参数
-			var args RequestVoteArgs
-			args.Term = rf.currentTerm
-			args.CandidateId = rf.me
-
-			go func(i int) {
-				var reply RequestVoteReply
-				rf.sendRequestVote(i, args, &amp;reply)
-			}(i)
-		}
-	}
-}
-</code></pre>
-
-<ul>
-<li>复制日志(在这一部分只实现简单的心跳)</li>
-</ul>
-
-<p>下面这个是RPC函数，用来给候领导人调用的，然后在每个服务器执行</p>
-
-<pre><code class="language-go">func (rf *Raft) AppendEntries(args AppendEntriesArgs, reply *AppendEntriesReply) {
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
-	rf.heartbeatCh &lt;- struct{}{}
-}
-</code></pre>
-
-<p>有了之前实现的投票，类似地实现日志复制</p>
-
-<pre><code class="language-go">func (rf *Raft) sendAppendEntries(server int, args AppendEntriesArgs, reply *AppendEntriesReply) bool {
-	ok := rf.peers[server].Call(&quot;Raft.AppendEntries&quot;, args, reply)
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
-	if ok {
-		if rf.state != STATE_LEADER {
-			return ok
-		} else if args.Term != rf.currentTerm {
-			return ok
-		}
-
-		// 更新自己的term
-		if reply.Term &gt; rf.currentTerm {
-			rf.currentTerm = reply.Term
-			rf.state = STATE_FLLOWER
-			rf.votedFor = -1
-			return ok
-		}
-	}
-
-	return ok
-}
-
-func (rf *Raft) broadcastAppendEntries() {
-	for i := range rf.peers {
-		if i != rf.me &amp;&amp; rf.state == STATE_LEADER {
-			// 参数初始化
-			var args AppendEntriesArgs
-			args.Term = rf.currentTerm
-			args.LeaderId = rf.me
-
-			go func(i int, args AppendEntriesArgs) {
-				var reply AppendEntriesReply
-				rf.sendAppendEntries(i, args, &amp;reply)
-			}(i, args)
-		}
-	}
-}
-</code></pre>
-
-<h3 id="测试">测试</h3>
-
-<p>只能通过前两个测试点</p>
-
-<pre><code class="language-shell">$ go test
-go test
-Test: initial election ...
-  ... Passed
-Test: election after network failure ...
-  ... Passed
-Test: basic agreement ...
-^Csignal: interrupt
-FAIL	raft	12.131s
-</code></pre>
-
-<h2 id="raft-part2-日志的复制">raft_part2——日志的复制</h2>
-
-<h2 id="调试错误">调试错误</h2>
-
-<ol>
-<li>怎么也通不过第三个测试<code>basic agreement</code>？
-这个错误找了很久，我以为问题是出在日志复制部分，但是怎么也排查不出来。</li>
-</ol>
-
-<p>最后再重新看整个代码，发现<code>Start()</code>函数这里没修改，因为这个函数是与’客户‘通信的通道，如果是leader就要添加指令</p>
-
-<pre><code class="language-go">func (rf *Raft) Start(command interface{}) (int, int, bool) {
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
-	index := -1
-	term := rf.currentTerm
-	isLeader := rf.state == STATE_LEADER
-
-	if isLeader == true {
-		index = rf.getLastIndex() + 1
-		rf.log = append(rf.log, LogEntry{LogTerm: term, LogCmd: command})
-	}
-	return index, term, isLeader
-}
-</code></pre>
-
-<p>修改之后就能通过第三个测试了，但是第五个测试没通过。</p>
-
-<ol>
-<li>第五个测试<code>no agreement if too many followers fail</code>？
-错误提示：
-<code>shell
-Test: no agreement if too many followers fail ...
---- FAIL: TestFailNoAgree (3.30s)
-	test_test.go:164: 2 committed but no majority
+<li>应用提供一些的输入文件，一个map函数，一个reduce函数，以及reduce任务的数量(nReduce)</li>
+<li>Master开启一个RPC服务，然后等待Workers来注册(使用maste.go/Register())。当有Task时，schedule.go/schedule()决定将这些Task指派给workers，以及如何处理Workers的错误</li>
+<li>Master将每个输入文件当作Task，然后调用common_map.go/dMap()。这个过程既可以直接进行(串行模式)，也可以通过RPC来让Workers做。每次调用doMap()都会读取相应的文件，运行map函数，将key/value结果写入nReduce个中间文件之中。在map结束后总共会生成nMap * nReduce个文件。命令格式为：前缀-map编号-reduce编号(见common.go)，例如，如果有两个map tasks以及三个reduce tasks，map会生成2 * 3 = 6个中间文件。
+<code>
+mrtmp.xxx-0-0
+mrtmp.xxx-0-1
+mrtmp.xxx-0-2
+mrtmp.xxx-1-0
+mrtmp.xxx-1-1
+mrtmp.xxx-1-2
 </code>
-既然是跟commint日志相关，那么范围可以缩小到有关日志提交的部分。发现了个低级错误。。。</li>
+每个Worker必须能够读取其他Worker写入的文件。真正的分布式系统会使用分布式存储来实现不同机器之间的共享，在这里我们将所有的Workers运行在一台电脑上，并使用本地文件系统</li>
+<li>此后Master会调用common_reduce.go/doReduce()，与doMap()一样，它也能直接完成或者通过工人完成。doReduce()将按照reduce task编号来汇总，生成nRduce个结果文件。例如上面的例子中按照如下分组进行汇总：
+<code>
+// reduce task 0
+mrtmp.xxx-0-0
+mrtmp.xxx-1-0
+// reduce task 1
+mrtmp.xxx-0-1
+mrtmp.xxx-1-1
+// reduce task 2
+mrtmp.xxx-0-2
+mrtmp.xxx-1-2
+</code></li>
+<li>此后Master调用master_splitmerge.go/mr.merge()将所有生成的文件整合成一个输出。</li>
+<li>Master发送Shutdown RPC给所有Workers，然后关闭自己的RPC服务</li>
 </ol>
 
-<p>在<code>sendAppendEntries</code>函数中对<code>matchIndex</code>的更新出了问题，应该是减一，而不是加一。</p>
+<h2 id="part-i-map-reduce-input-and-output">Part I: Map/Reduce input and output</h2>
 
-<pre><code class="language-go">rf.nextIndex[server] = reply.NextIndex
-rf.matchIndex[server] = reply.NextIndex - 1
+<p>在我们实现 Map/Reduce 之前，首先要修复一个串行实现。给出的源码缺少两个关键部分：
+1. 划分 Map 输出的函数 doMap()
+2. 汇总 Reduce 输入的函数 doReduce()
+首先建议阅读 common.go，这里定义了会用到的数据类型，文件命名方法等</p>
 
-</code></pre>
+<h3 id="domap-函数">doMap() 函数</h3>
 
-<ol>
-<li>时不时会卡在第五个测试<code>no agreement if too many followers fail</code>？
-第五个测试是和领导人选举有关，经检查，在<code>RequestVote</code>RPC中，在投票确认的时候没有将重复投票的情况排除。
-<code>go
-if uptoDate == true &amp;&amp; rf.votedFor == -1 {
-	rf.grantedvoteCh &lt;- struct{}{}
-	reply.VoteGranted = true
-	rf.state = STATE_FLLOWER
-	rf.votedFor = args.CandidateId
+<p>首先总结一下 Map 的过程，它对于每个 Map Task，都会进行以下操作：
+1. 从某个数据文件 A.txt 中读取数据。
+2. 自定义函数 mapF 对 A.txt 中的文件进行解读，形成一组 {Key, Val} 对。
+3. 生成 nReduce 个子文件 A_1, A_2, &hellip;, A_nReduce。
+4. 利用 {Key, Val} 中的 Key 值做哈希，将得到的值对 nReduce 取模，以此为依据将其分配到子文件之中。</p>
+
+<pre><code class="language-go">func doMap(
+	jobName string, // the name of the MapReduce job
+	mapTaskNumber int, // which map task this is
+	inFile string,
+	nReduce int, // the number of reduce task that will be run (&quot;R&quot; in the paper)
+	mapF func(file string, contents string) []KeyValue,
+) {
+	// 你需要重写这个函数。你可以通过reduceName获取文件名,使用map任务的输入为reduce任务提供输出。
+	// 下面给出的ihash函数应该被用于决定每个key属于的文件。
+	//
+	// map任务的中间输入以多文件的形式保存在文件系统上,它们的文件名说明是哪个map任务产生的,同时也说明哪个reduce任务会处理它们。
+	// 想出如何存储键/值对在磁盘上的方案可能会非常棘手,特别地, 当我们考虑到key和value都包含新行(newlines),引用(quotes),或者其他
+	// 你想到的字符。
+	//
+	// 有一种格式经常被用来序列化数据到字节流,然后可以通过字节流进行重建，这种格式是json。你没有被强制使用JSON,但是reduce任务的输出
+	// 必须是JSON格式,熟悉JSON数据格式会对你有所帮助。你可以使用下面的代码将数据结构以JSON字符串的形式输出。对应的解码函数在common_reduce.go
+	// 可以找到。
+	//
+	//   enc := json.NewEncoder(file)
+	//   for _, kv := ... {
+	//     err := enc.Encode(&amp;kv)
+	//
+	//   记得关闭文件当你写完全部的数据之后。
+
+
+	// 注：Map的大致流程如下(官方教材建议不上传代码，所以去除)
+	// 　S1: 　打开输入文件，并且读取全部数据
+	//  S2： 调用用户自定义的mapF函数,分检数据,在word count的案例中分割成单词
+	//  S3： 将mapF返回的数据根据key分类,跟文件名对应(reduceName获取文件名)
+	// 　S4: 　将分类好的数据分别写入不同文件
+
+	// 打印参数
+	fmt.Printf(&quot;jobName = %s, inFile = %s, mapTaskNumber = %d, nReduce = %d\n&quot;, jobName, inFile, mapTaskNumber, nReduce);
+
+	// 读取文件
+	bytes, err := ioutil.ReadFile(inFile);
+	if err != nil {
+		log.Fatal(&quot;Unable to read file: &quot;, inFile);
+	}
+
+	// 解析输入文件为键值对数组
+	kv_pairs := mapF(inFile, string(bytes))
+
+	// 生成一组encoder用来对应文件
+	encoders := make([]*json.Encoder, nReduce)
+	for reduceTaskNumber := 0; reduceTaskNumber &lt; nReduce; reduceTaskNumber++ {
+		// reduceName(在comman.go)返回一个特定的文件名
+		filename := reduceName(jobName, mapTaskNumber, reduceTaskNumber)
+		file_ptr, err := os.Create(filename)
+		if err != nil {
+			log.Fatal(&quot;Unable to create file: &quot;, filename)
+		}
+
+		defer file_ptr.Close()
+		encoders[reduceTaskNumber] = json.NewEncoder(file_ptr)
+	}
+
+	// 利用encoder将键值对写入对应文件
+	for _, key_val := range kv_pairs {
+		key := key_val.Key
+		reduce_idx := ihash(key) % uint32(nReduce)
+		err := encoders[reduce_idx].Encode(key_val)
+		if err != nil {
+			log.Fatal(&quot;Unable to write to file&quot;)
+		}
+	}
 }
-</code>
-在之前的基础上加上了<code>rf.voteFor == -1</code>条件。</li>
-</ol>
-
-<p>之后再测试就不会卡在第五个测试点了。</p>
-
-<ol>
-<li>时不时会卡在测试<code>Figure 8(unreiable)</code>?</li>
-<li>时不时会卡在测试<code>leader backs up quickly over incorrect follower logs</code>？</li>
-<li>时不时会卡在测试<code>more persistence</code>？
-找了两天，终于发现问题在哪了。
-其实上面的测试卡住不动的原因都是因为我初始化的<code>Channel</code>都是无缓冲的，
-也就是说从无缓存的频道中读取消息会阻塞，直到有goroutine向该频道中发送消息;
-同理，向无缓存的频道中发送消息也会阻塞，直到有goroutine从频道中读取消息。</li>
-</ol>
-
-<p>有缓存的通道类似一个阻塞队列（采用环形数组实现）。当缓存未满时，向通道中发送消息时不会阻塞，
-当缓存满时，发送操作将被阻塞，直到有其他goroutine从中读取消息;相应的，当渠道中消息不为空时，
-读取消息不会出现阻塞，当渠道为空时，读取操作会造成阻塞，直到有goroutine向渠道中写入消息。</p>
-
-<p>果然，将通道改为有缓存的通道就不会再测试卡住不动了。</p>
-
-<pre><code class="language-go">rf.heartbeatCh = make(chan interface{}, 100)
-rf.leaderCh = make(chan interface{}, 100)
-rf.commitCh = make(chan interface{}, 100)
-rf.grantedvoteCh = make(chan interface{}, 100)
 </code></pre>
 
-<h2 id="测试-1">测试</h2>
+<h3 id="doreduce-函数">doReduce()函数</h3>
 
-<pre><code class="language-shell">$ go test
-Test: initial election ...
-  ... Passed
-Test: election after network failure ...
-  ... Passed
-Test: basic agreement ...
-  ... Passed
-Test: agreement despite follower failure ...
-  ... Passed
-Test: no agreement if too many followers fail ...
-  ... Passed
-Test: concurrent Start()s ...
-  ... Passed
-Test: rejoin of partitioned leader ...
-  ... Passed
-Test: leader backs up quickly over incorrect follower logs ...
-  ... Passed
-Test: RPC counts aren't too high ...
-  ... Passed
-Test: basic persistence ...
-  ... Passed
-Test: more persistence ...
-  ... Passed
-Test: partitioned leader and one follower crash, leader restarts ...
-  ... Passed
-Test: Figure 8 ...
-  ... Passed
-Test: unreliable agreement ...
-  ... Passed
-Test: Figure 8 (unreliable) ...
-  ... Passed
-Test: churn ...
-  ... Passed
-Test: unreliable churn ...
-  ... Passed
+<pre><code class="language-go">func doReduce(
+	jobName string, // the name of the whole MapReduce job
+	reduceTaskNumber int, // which reduce task this is
+	nMap int, // the number of map tasks that were run (&quot;M&quot; in the paper)
+	reduceF func(key string, values []string) string,
+) {
+	// 你需要完成这个函数。你可与获取到来自map任务生产的中间数据，通过reduceName获取到文件名。
+	//  记住你应该编码了值到中间文件,所以你需要解码它们。如果你选择了使用JSON,你通过创建decoder读取到多个
+	// 解码之后的值，直接调用Decode直到返回错误。
+	//
+	// 你应该将reduce输出以JSON编码的方式保存到文件，文件名通过mergeName获取。我们建议你在这里使用JSON,
+
+	// key是中间文件里面键值，value是字符串,这个map用于存储相同键值元素的合并
+
+	// Reduce的过程如下：
+	//   S1: 获取到Map产生的文件并打开(reduceName获取文件名)
+	// 　S2：获取中间文件的数据(对多个map产生的文件更加值合并)
+	// 　S3：打开文件（mergeName获取文件名），将用于存储Reduce任务的结果
+	// 　S4：合并结果之后(S2)，进行reduceF操作, work count的操作将结果累加，也就是word出现在这个文件中出现的次数
+
+	// 查看参数
+	fmt.Printf(&quot;Reduce: job name = %s, reduce task id = %d, nMap = %d\n&quot;, jobName, reduceTaskNumber, nMap);
+
+	// 建立哈希表，以slice形式存储同一key的所有value
+	kv_map := make(map[string]([]string))
+
+	// 读取同一个reduce task 下的所有文件，保存至哈希表
+	for mapTaskNumber := 0; mapTaskNumber &lt; nMap; mapTaskNumber++ {
+		filename := reduceName(jobName, mapTaskNumber, reduceTaskNumber)
+		f, err := os.Open(filename)
+		if err != nil {
+			log.Fatal(&quot;Unable to read from: &quot;, filename)
+		}
+		defer f.Close()
+
+		decoder := json.NewDecoder(f)
+		var kv KeyValue
+		for ; decoder.More(); {
+			err := decoder.Decode(&amp;kv)
+			if err != nil {
+				log.Fatal(&quot;json decode failed, &quot;, err)
+			}
+			kv_map[kv.Key] = append(kv_map[kv.Key], kv.Value)
+		}
+	}
+	
+	// 对哈希表所有key进行升序排序
+	keys := make([]string, 0, len(kv_map))
+	for k, _ := range kv_map {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// 利用自定义的reduceF函数处理同一key下所有val
+	// 按照key的顺序将结果以{{key, new_val}}形式输出
+	outf, err := os.Create(mergeName(jobName, reduceTaskNumber))
+	if err != nil {
+		log.Fatal(&quot;Unable to create file: &quot;, mergeName(jobName, reduceTaskNumber))
+	}
+	defer outf.Close()
+	encoder := json.NewEncoder(outf)
+	for _,k := range keys {
+		encoder.Encode(KeyValue{k, reduceF(k, kv_map[k])})
+	}
+}
+</code></pre>
+
+<p>运行part1.sh或直接在命令行输入：</p>
+
+<pre><code>go test -run Sequential
+</code></pre>
+
+<p>即可看到运行结果：</p>
+
+<pre><code>ter: Starting Map/Reduce task test
+jobName = test, inFile = 824-mrinput-0.txt, mapTaskNumber = 0, nReduce = 3
+Reduce: job name = test, reduce task id = 0, nMap = 1
+Reduce: job name = test, reduce task id = 1, nMap = 1
+Reduce: job name = test, reduce task id = 2, nMap = 1
+Merge: read mrtmp.test-res-0
+Merge: read mrtmp.test-res-1
+Merge: read mrtmp.test-res-2
+master: Map/Reduce task completed
+master: Starting Map/Reduce task test
+jobName = test, inFile = 824-mrinput-0.txt, mapTaskNumber = 0, nReduce = 3
+jobName = test, inFile = 824-mrinput-1.txt, mapTaskNumber = 1, nReduce = 3
+jobName = test, inFile = 824-mrinput-2.txt, mapTaskNumber = 2, nReduce = 3
+jobName = test, inFile = 824-mrinput-3.txt, mapTaskNumber = 3, nReduce = 3
+jobName = test, inFile = 824-mrinput-4.txt, mapTaskNumber = 4, nReduce = 3
+Reduce: job name = test, reduce task id = 0, nMap = 5
+Reduce: job name = test, reduce task id = 1, nMap = 5
+Reduce: job name = test, reduce task id = 2, nMap = 5
+Merge: read mrtmp.test-res-0
+Merge: read mrtmp.test-res-1
+Merge: read mrtmp.test-res-2
+master: Map/Reduce task completed
 PASS
-ok  	raft	163.110s
+ok  	_/root/Distributed-Systems/6.824/src/mapreduce	3.831s
+</code></pre>
+
+<h2 id="part-ii-single-worker-word-count">Part II: Single-worker word count</h2>
+
+<p>既然map和reduce任务已经被连接，那么我们开始实现一些Map/Reduce操作。在这个实验中我们会实现单词计数器——一个简单经典的Map/Reduce例子。特别地,你们的任务是改写mapF和reduceF函数，这样wc.go就可以报告每个单词的数量了。一个单词是任何相邻的字母序列，正如unicode.IsLetter定义的那样。</p>
+
+<p>这里有一些以pg-开头的输入文件位于~/6.824/src/main路径下面。尝试编译我们通过给你的软件，然后就使用我们提供的输入文件运行看看：</p>
+
+<pre><code>    $ cd 6.824
+    $ export &quot;GOPATH=$PWD&quot;
+    $ cd &quot;$GOPATH/src/main&quot;
+    $ go run wc.go master sequential pg-*.txt
+    # command-line-arguments
+    ./wc.go:14: missing return at end of function
+    ./wc.go:21: missing return at end of function
+</code></pre>
+
+<p>编译失败的原因是我们还没有编写完整的map函数(mapF)和reduce函数(reduceF)。在你开始阅读MapReduce论文的第二部分时，这里需要说明你的mapF函数和reduceF函数跟论文中有些区别。你的mapF函数会传递文件名和文件的内容；它将会分隔成单词，然后返回含有键值对的切片类型([]KeyValue),你的reduceF函数对于每个键都会调用一次，参数是mapF生成的切片数据，它只有一个返回值。</p>
+
+<p>你可以通过下面的命令运行你的解决方案：</p>
+
+<pre><code>    $ cd &quot;$GOPATH/src/main&quot;
+    $ go run wc.go master sequential pg-*.txt
+    master: Starting Map/Reduce task wcseq
+    Merge: read mrtmp.wcseq-res-0
+    Merge: read mrtmp.wcseq-res-1
+    Merge: read mrtmp.wcseq-res-2
+    master: Map/Reduce task completed
+    14.59user 3.78system 0:14.81elapsed
+</code></pre>
+
+<p>生产的结果会在文件mrtmp.wcseq中，通过下面的命令删除全部的中间数据：</p>
+
+<pre><code>    $ rm mrtmp.*
+</code></pre>
+
+<p>如果执行下面的命令出现如下内容，那么你的实现是正确的：</p>
+
+<pre><code>    $ sort -n -k2 mrtmp.wcseq | tail -10
+    he: 34077
+    was: 37044
+    that: 37495
+    I: 44502
+    in: 46092
+    a: 60558
+    to: 74357
+    of: 79727
+    and: 93990
+    the: 154024
+</code></pre>
+
+<p>为了让测试更加简单，你可以运行下面的脚本：</p>
+
+<pre><code>    $ sh ./test-wc.sh
+</code></pre>
+
+<p>脚本会告知你的解决方案是否正确。</p>
+
+<h2 id="part-iii-distributing-mapreduce-tasks">Part III: Distributing MapReduce tasks</h2>
+
+<p>在开始这部分实验之前要先阅读master.go的代码
+目前为止我们都是串行地执行任务，Map/Reduce 最大的优势就是能够自动地并行执行普通的代码，不用开发者进行额外工作。在 Part III 我们会把任务分配给一组 worker thread，在多核上并行进行。虽然我们不在多机上进行，但是会用 RPC 来模拟分布式计算。</p>
+
+<p>我们需要实现 <code>mapreduce/schedule.go</code> 的 <code>schedule()</code>，在一次任务中，Master 会调用两次 <code>schedule()</code>，一次用于 Map，一次用于 Reduce。<code>schedule()</code>将会把任务分配给 Workers，通常任务会比 Workers 数量多，因此 <code>schedule()</code> 会给每个 worker 一个 Task 序列，然后等待所有 Task 完成再返回。</p>
+
+<p><code>schedule()</code> 通过 <code>registerChan</code> 参数获取 Workers 信息，它会生成一个包含 Worker 的 RPC 地址的 string，有些 Worker 在调用 <code>schedule()</code> 之前就存在了，有的在调用的时候产生，他们都会出现在 <code>registerChan</code> 中。</p>
+
+<p><code>schedule()</code> 通过发送 <code>Worker.DoTask</code> RPC 调度 Worker 执行任务，可以用 <code>mapreduce/common_rpc.go</code> 中的 <code>call()</code> 函数发送。<code>call()</code> 的第一个参数是 Worker 的地址，可以从 <code>registerChan</code> 获取，第二个参数是 <code>&quot;Worker.DoTask&quot;</code> 字符串，第三个参数是 <code>DoTaskArgs</code> 结构体的指针，最后一个参数为 <code>nil</code>。</p>
+
+<p>这是一个比较有含金量的练习。
+<code>schedule()</code> 函数的调用发生在 <code>master.go</code> 中。首先，在<code>Distributed()</code> 中对 <code>schedule()</code> 做了一个再封装，使得其只需要一个参数判断是 Map 还是 Reduce。</p>
+
+<p>运行脚本测试是否正确：</p>
+
+<pre><code>./part3.sh
+</code></pre>
+
+<h2 id="part-iv-handling-worker-failures">Part IV: Handling worker failures</h2>
+
+<p>在该部分中我们需要让 Master 能够处理 failed Worker。MapReduce 使这个处理相对简单，因为如果一个 Worker fails，Master 交给它的任何任务都会失败。此时 Master 需要把任务交给另一个 Worker。</p>
+
+<p>一个 RPC 出错并不一定表示 Worker 没有执行任务，有可能只是 reply 丢失了，或是 Master 的 RPC 超时了。因此，有可能两个 Worker 都完成了同一个任务。同样的任务会生成同样的结果，所以这样并不会引发什么问题。并且，在该 lab 中，每个 Task 都是序列执行的，这就保证了结果的整体性。</p>
+
+<p>运行脚本测试是否正确：</p>
+
+<pre><code>./part4.sh
+</code></pre>
+
+<h2 id="part-v-inverted-index-generation-optional">Part V: Inverted index generation (optional)</h2>
+
+<p>Word count是一个典型的Map/Reduce应用，但是它不是一个大规模消费者使用Map/Reduce的例子。它非常简单，现实中很少需要你从一个大的数据集里面统计单词的数量。在这个具有挑战性的练习中，我们代替你已经建立用于生成反向索引的Map和Reduce函数。</p>
+
+<p>反向索引在计算机科学领域被广泛使用，尤其在文档搜索方面。广义地说，一个反向索引就是map,存在底层数据的一些有趣的事实，说明数据的原始位置。例如，在文本搜索的时候，反向索引也许是这样的map,它包含了两个单词从关键字指向文档.</p>
+
+<p>我们将会建立第二个可执行程序在main/ii.go，跟你之前的在part2建立的wc.go非常类似。你应该修改main/ii.go文件中的mapF和reduceF函数，那么它们就可与共同产生反向索引。运行ii.go将会输出一些元组，每一行都类似下面这种格式：</p>
+
+<pre><code>&lt;单词&gt;: &lt;文件个数&gt; &lt;排序后的文件名列表&gt;
+</code></pre>
+
+<p>相比 PartII 中的词频统计，思想是类似的。 首先在<code>mapF</code>里对文件的内容分词，维护一个哈希表，Key 是单词，Value 是文件名。这样可以去掉重复的词。最后再把哈希表转为输出要求的格式。</p>
+
+<p><code>mapF</code>返回的数组会经过哈希处理分配到 nReduce 个文件中。<code>doReduce</code>则会将隶属于同样的<code>reduce_task_id</code>的文件的 {key, val} 整合为 {key, []val}。在本例中就相当于 {单词，[]文件名}。 在<code>reduceF</code>里主要是对每个 key 下的所有 value 进行处理。注意，它并不负责输出，只负责返回一个 newVal，最后由<code>doReduce</code>统一以 {key, newVal} 形式输出。因此我们只需要把 []文件名 进行排序后，按要求格式转为一个 string 即可。</p>
+
+<p>运行脚本测试是否正确：</p>
+
+<pre><code>./test-ii.sh
+</code></pre>
+
+<h2 id="最终测试">最终测试</h2>
+
+<p>测试实验一的五个部分：</p>
+
+<pre><code>./test-mr.sh
 </code></pre>
 
 <h1 id="总结">总结</h1>
 
-<p>在读Raft论文的同时，我也了解了著名的一致性算法Paxos，相比较之下，
-可能还是Raft比较好理解(可能是Raft还有动画演示可以看&hellip;)。</p>
-
-<p>虽然说Raft算法比较简单，但是也只是相比较于Paxos。真正要实现，就会遇到一大堆不明所以的问题。</p>
-
-<p>磕磕绊绊，也算是完成了Raft算法，下一个实验就要应用这个算法了。</p>
+<p>MapReduce是处理大数据的重要方法，论文还有很多实验没有覆盖到的地方，还需要多看论文。</p>
               
             </div>
           </div>
@@ -692,7 +585,7 @@ ok  	raft	163.110s
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/" data-tooltip="MIT6.824分布式系统实验三之KV-Raft">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8B%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" data-tooltip="MIT6.828操作系统实验二之内存管理">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -700,7 +593,7 @@ ok  	raft	163.110s
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/" data-tooltip="CMU数据库系统总结">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -760,7 +653,7 @@ ok  	raft	163.110s
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/" data-tooltip="MIT6.824分布式系统实验三之KV-Raft">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/09/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8B%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86/" data-tooltip="MIT6.828操作系统实验二之内存管理">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -768,7 +661,7 @@ ok  	raft	163.110s
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/" data-tooltip="CMU数据库系统总结">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -1102,9 +995,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/09\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8Bmapreduce\/';
           
-            this.page.identifier = '\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft\/'
+            this.page.identifier = '\/2018\/09\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%80%E4%B9%8Bmapreduce\/'
           
         };
         (function() {
