@@ -8,29 +8,29 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="基于Raft算法的具有容错性的键值数据库的实现
+<meta name="description" content="分布式一致性算法Paxos的实现
 ">
 
 
-<meta property="og:description" content="基于Raft算法的具有容错性的键值数据库的实现
+<meta property="og:description" content="分布式一致性算法Paxos的实现
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="MIT6.824分布式系统实验三之KV-Raft">
-<meta name="twitter:title" content="MIT6.824分布式系统实验三之KV-Raft">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
+<meta property="og:title" content="MIT6.824分布式系统之Paxos">
+<meta name="twitter:title" content="MIT6.824分布式系统之Paxos">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="基于Raft算法的具有容错性的键值数据库的实现
+<meta property="og:description" content="分布式一致性算法Paxos的实现
 ">
-<meta name="twitter:description" content="基于Raft算法的具有容错性的键值数据库的实现
+<meta name="twitter:description" content="分布式一致性算法Paxos的实现
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-11-22T00:00:00">
+    <meta property="article:published_time" content="2018-11-27T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-11-22T00:00:00">
+    <meta property="article:modified_time" content="2018-11-27T00:00:00">
   
   
   
@@ -59,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>MIT6.824分布式系统实验三之KV-Raft</title>
+    <title>MIT6.824分布式系统之Paxos</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -192,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      MIT6.824分布式系统实验三之KV-Raft
+      MIT6.824分布式系统之Paxos
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-11-22T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-11-27T00:00:00Z">
         
-  November 22, 2018
+  November 27, 2018
 
       </time>
     
@@ -211,468 +211,203 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>基于Raft算法的具有容错性的键值数据库的实现
+              <p>分布式一致性算法Paxos的实现
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>因为有了之前lab2的惯性，lab3实现起来较为得心应手。</p>
+<p>为了和见识一下Paxos算法，特意找了15年的Lab3，这个实验的PartA就是实现Paxos算法。</p>
 
-<p>这次实验是在Raft的基础上，加上了客户端的操作，对应于论文的第7、8节，而服务器端则是一个简单的键值数据库，
-服务端底层是用Raft算法，服务端提供RPC给客户端调用，而服务端要与底层Raft的日志进行交互，实现一个具有容错性的键值数据库。</p>
+<p>做完这个实验后，我发现Paxos和Raft还是有很多不一样的地方，Raft是每个节点都只能是三种状态之一，
+而Paxos则是每个节点可以同时是三种角色，只是是根据不同的请求响应，对应不同的角色进行响应。</p>
 
-<p>下面是这次实验的实验报告。</p>
+<p>以下是这次实验的实验报告。</p>
 
-<h1 id="基于raft的键值服务">基于Raft的键值服务</h1>
+<h2 id="实验框架">实验框架</h2>
 
-<ul>
-<li>客户发送<code>Put()</code>、<code>Append()</code>、<code>Get()</code>RPCs给键值服务器</li>
-<li>一个客户可以发送一个RPC给任意一个键值服务器，即使该服务器不是<code>leader</code>也不必重新发送。
-如果该操作已经被提交到Raft日志里了，则报告给客户。如果该操作提交失败了，则报告给客户让其重试其他服务器。</li>
-<li>服务器只能通过Raft日志来相互交流。</li>
-</ul>
+<pre><code class="language-go">px = paxos.Make(peers []string, me int)
+px.Start(seq int, v interface{}) // start agreement on new instance
+px.Status(seq int) (fate Fate, v interface{}) // get info about an instance
+px.Done(seq int) // ok to forget all instances &lt;= seq
+px.Max() int // highest instance seq known, or -1
+px.Min() int // instances before this have been forgotten
+</code></pre>
 
-<h2 id="parta-键值服务">PartA：键值服务</h2>
+<h2 id="paxos的一些概念">Paxos的一些概念</h2>
 
-<ol>
-<li>先完成<code>server.go</code>中的<code>Op</code>结构体。</li>
-</ol>
+<h3 id="什么是instance">什么是instance？</h3>
 
-<pre><code class="language-go">type Op struct {
-	// &quot;Get&quot; &quot;Put&quot; &quot;Append&quot;
-	Type 	string
-	Key 	string
-	Value 	string
-	// RaftKV的Id
-	Id 		int64
-	// 指令Id，用来标识每一条指令，防止指令重复执行
-	ReqId  	int
+<p>在论文《Paxos Made Simple》中的第三节实现状态机中提到的<code>instance</code>，其实这个<code>instance</code>就相当于<code>round</code>，就是“轮”的意思。</p>
+
+<p>而每一轮都会选择一个提案，因此在Paxos结构体中我们要在每轮保存一些数据，这样才能实现状态机。</p>
+
+<p>一轮中需要保存的数据：</p>
+
+<pre><code class="language-go">type instance struct{
+	state 		Fate
+	proposeNum	int
+	AcceptNum	int
+	AcceptValue	interface{}
 }
 </code></pre>
 
-<ol>
-<li>完成<code>server.go</code>中的<code>RaftKV</code>结构体</li>
-</ol>
+<p>Paxos结构体：</p>
 
-<pre><code class="language-go">type RaftKV struct {
-	mu      sync.Mutex
-	me      int
-	rf      *raft.Raft
-	applyCh chan raft.ApplyMsg
+<pre><code class="language-go">type Paxos struct {
+	mu         sync.Mutex
+	l          net.Listener
+	dead       int32 // for testing
+	unreliable int32 // for testing
+	rpcCount   int32 // for testing
+	peers      []string
+	me         int // index into peers[]
 
-	maxraftstate int // snapshot if log grows this big
-
-	// Your definitions here.
-	// 数据库，存储数据
-	db 		map[string]string
-	// map[Id]ReqId
-	ack		map[int64]int 
-	// map[msg.Index]chan Op
-	result 	map[int]chan Op
+	// 保存每个服务器节点的已经Done的最高seq
+	dones 		[]int
+	// 保存每一轮的状态值
+	instances 	map[int]instance
 }
 </code></pre>
 
-<ol>
-<li><code>server.go</code>里的主循环：<code>StartKVServer()</code></li>
-</ol>
+<h2 id="paxos状态机">Paxos状态机</h2>
 
-<pre><code class="language-go">func StartKVServer(servers []*labrpc.ClientEnd, me int, persister *raft.Persister, maxraftstate int) *RaftKV {
-	// call gob.Register on structures you want
-	// Go's RPC library to marshall/unmarshall.
-	gob.Register(Op{})
-
-	kv := new(RaftKV)
-	kv.me = me
-	kv.maxraftstate = maxraftstate
-
-	// Your initialization code here.
-
-	kv.applyCh = make(chan raft.ApplyMsg)
-	kv.rf = raft.Make(servers, me, persister, kv.applyCh)
-
-	kv.db = make(map[string]string)
-	kv.ack = make(map[int64]int)
-	kv.result = make(map[int]chan Op)
-
-	// 由于该函数要快速返回，所以使用goroutine
+<pre><code class="language-go">func (px *Paxos) Start(seq int, v interface{}) {
 	go func() {
+		if seq &lt; px.Min() {
+			return
+		}
+
 		for {
-			// 从Raft中传来的日志
-			msg := &lt;- kv.applyCh
-			// .(type)是类型断言，将接口类型的值Command转换成Op
-			op := msg.Command.(Op)
-
-			kv.mu.Lock()
-			
-			v, ok := kv.ack[op.Id]
-			// 检查ack[op.Id]中是否已经有值，如果有值，请求的值比之前的ReqId大就说明需要写入db
-			if !(ok &amp;&amp; v &gt;= op.ReqId) {
-				if op.Type == &quot;Put&quot; {
-					kv.db[op.Key] = op.Value
-				} else if op.Type == &quot;Append&quot; {
-					kv.db[op.Key] += op.Value
-				}
-
-				// 更新ReqId
-				kv.ack[op.Id] = op.ReqId
-			}
-
-			ch, ok := kv.result[msg.Index]
+			// 阶段一：Prepare，提案的生成及请求
+			ok, pNum, pValue := px.sendPrepare(seq, v)
+		
 			if ok {
-				// 如果通道存在就传送请求op
-				ch &lt;- op
-			} else {
-				kv.result[msg.Index] = make(chan Op, 1)
+				// 阶段二：Accept，提案的批准
+				ok = px.sendAccept(seq, pNum, pValue)
 			}
-			
-			kv.mu.Unlock()
+		
+			if ok {
+				// 确认阶段，相当于Learner获取提案
+				px.sendDecide(seq, pNum, pValue)
+				break
+			}
+
+			// 获取当前状态
+			state, _ := px.Status(seq)
+			// 如果为Decided，说明该状态机的这一轮已经结束
+			if state == Decided {
+				break
+			}
 		}
 	}()
-
-	return kv
 }
 </code></pre>
-
-<ol>
-<li><code>command.go</code>里的结构体添加成员</li>
-</ol>
-
-<pre><code class="language-go">// Put or Append
-type PutAppendArgs struct {
-	// You'll have to add definitions here.
-	Key   string
-	Value string
-	Op    string // &quot;Put&quot; or &quot;Append&quot;
-	// You'll have to add definitions here.
-	// Field names must start with capital letters,
-	// otherwise RPC will break.
-	Id		int64
-	ReqID	int	
-}
-
-type GetArgs struct {
-	Key 	string
-	// You'll have to add definitions here.
-	Id		int64
-	ReqID	int	
-}
-</code></pre>
-
-<ol>
-<li><code>server.go</code>里提供给client的RPC操作：<code>Get</code>和<code>PutAppend</code></li>
-</ol>
-
-<p>这两个实现都很简单，都是先构造<code>Op</code>对象，然后与将该指令传到底层的<code>Raft</code>，等待主循环中的回应。</p>
-
-<pre><code class="language-go">// 添加指令到底层Raft的日志
-func (kv *RaftKV) AppendEntryToLog(entry Op) bool {
-	index, _, isLeader := kv.rf.Start(entry)
-	if !isLeader {
-		return false
-	}
-
-	kv.mu.Lock()
-	ch, ok := kv.result[index]
-	if !ok {
-		ch = make(chan Op, 1)
-		kv.result[index] = ch
-	}
-	kv.mu.Unlock()
-
-	select {
-	// 如果相等说明指令成功写入Raft日志且已经提交了
-	case op := &lt;-ch:
-		return op == entry
-	// 超时
-	case &lt;- time.After(1000 * time.Millisecond):
-		return false
-	}
-}
-
-
-func (kv *RaftKV) Get(args *GetArgs, reply *GetReply) {
-	// Your code here.
-	op := Op{
-		Type: 	&quot;Get&quot;,
-		Key:	args.Key,
-		Id:		args.Id,
-		ReqId:	args.ReqID,
-	}
-
-	ok := kv.AppendEntryToLog(op)
-	if ok {
-		reply.WrongLeader = false
-		reply.Err = OK
-		
-		// 从db中取值
-		reply.Value = kv.db[args.Key]
-	} else {
-		reply.WrongLeader = true
-	}
-}
-
-func (kv *RaftKV) PutAppend(args *PutAppendArgs, reply *PutAppendReply) {
-	// Your code here.
-	op := Op{
-		Type: 	args.Op,
-		Key:	args.Key,
-		Value:	args.Value,
-		Id:		args.Id,
-		ReqId:	args.ReqID,
-	}
-
-	ok := kv.AppendEntryToLog(op)
-	if ok {
-		reply.WrongLeader = false
-		reply.Err = OK
-	} else {
-		reply.WrongLeader = true
-	}
-}
-</code></pre>
-
-<ol>
-<li><code>client.go</code></li>
-</ol>
-
-<p>client的实现很简单</p>
-
-<pre><code class="language-go">type Clerk struct {
-	servers []*labrpc.ClientEnd
-	// You will have to modify this struct.
-	id 		int64
-	// 唯一的指令Id
-	reqid	int
-	// 保护reqid
-	mu 		sync.Mutex
-}
-
-func MakeClerk(servers []*labrpc.ClientEnd) *Clerk {
-	ck := new(Clerk)
-	ck.servers = servers
-	// You'll have to add code here.
-	ck.id = nrand()
-	ck.reqid = 0
-	return ck
-}
-</code></pre>
-
-<p>之后就是<code>Get</code>和<code>PutAppend</code>操作，直接构造<code>args</code>然后通过调用server的RPC传入该参数即可。</p>
-
-<pre><code class="language-go">func (ck *Clerk) Get(key string) string {
-	// You will have to modify this function.
-	var args GetArgs
-	args.Key = key
-	args.Id = ck.id
-
-	ck.mu.Lock()
-	args.ReqID = ck.reqid
-	ck.reqid++
-	ck.mu.Unlock()
-
-	for {
-		for _, v := range ck.servers {
-			var reply GetReply
-			ok := v.Call(&quot;RaftKV.Get&quot;, &amp;args, &amp;reply)
-			if ok &amp;&amp; reply.WrongLeader == false {
-				return reply.Value
-			}
-		}
-	}
-}
-
-func (ck *Clerk) PutAppend(key string, value string, op string) {
-	// You will have to modify this function.
-	var args PutAppendArgs
-	args.Key = key
-	args.Value = value
-	args.Op = op
-	args.Id = ck.id
-
-	ck.mu.Lock()
-	args.ReqID = ck.reqid
-	ck.reqid++
-	ck.mu.Unlock()
-
-	for {
-		for _, v := range ck.servers {
-			var reply PutAppendReply
-			ok := v.Call(&quot;RaftKV.PutAppend&quot;, &amp;args, &amp;reply)
-			if ok &amp;&amp; reply.WrongLeader == false {
-				return 
-			}
-		}
-	}
-}
-</code></pre>
-
-<h2 id="测试">测试</h2>
-
-<p>能通过快照之前所有的测试：</p>
-
-<pre><code class="language-shell">$ go test
-Test: One client ...
-  ... Passed
-Test: concurrent clients ...
-  ... Passed
-Test: unreliable ...
-  ... Passed
-Test: Concurrent Append to same key, unreliable ...
-  ... Passed
-Test: Progress in majority ...
-  ... Passed
-Test: No progress in minority ...
-  ... Passed
-Test: Completion after heal ...
-  ... Passed
-Test: many partitions ...
-2018/11/19 13:37:31 Warning: client 0 managed to perform only 6 put operations in 1 sec?
-  ... Passed
-Test: many partitions, many clients ...
-  ... Passed
-Test: persistence with one client ...
-  ... Passed
-Test: persistence with concurrent clients ...
-  ... Passed
-Test: persistence with concurrent clients, unreliable ...
-  ... Passed
-Test: persistence with concurrent clients and repartitioning servers...
-2018/11/19 13:39:23 Warning: client 2 managed to perform only 9 put operations in 1 sec?
-  ... Passed
-Test: persistence with concurrent clients and repartitioning servers, unreliable...
-2018/11/19 13:39:51 Warning: client 0 managed to perform only 8 put operations in 1 sec?
-2018/11/19 13:40:12 Warning: client 3 managed to perform only 8 put operations in 1 sec?
-  ... Passed
-</code></pre>
-
-<h2 id="partb-日志压缩">PartB：日志压缩</h2>
-
-<p>快照是实现日志压缩的最简单的方式。</p>
 
 <h2 id="调试">调试</h2>
 
 <ol>
-<li><code>InstallSnapshot RPC</code>出现<code>out of range</code>的错误？
-由于我没有完全按照论文中安装快照RPC中的参数，论文中是用<code>offset</code>来代表当前日志的偏移量，
-而我直接在<code>LogEntry</code>结构体中添加一个成员<code>LogIndex</code>来代替<code>offset</code>。</li>
+<li>产生死锁？
+程序直接就卡死在第一个测试，完全动不了，经调试及查看<code>test_test.go</code>文件的内容，发现程序是卡在<code>Min()</code>函数的<code>px.mu.Lock()</code>语句，一开始我以为是在<code>Start()</code>函数中调用的<code>Min()</code>，后来检查了好久，没发现有什么问题。后来看到<code>Status()</code>中调用到了<code>Min()</code>函数，而且这里在调用<code>Min()</code>之前还加了锁，连续两次锁定同一个锁当然会死锁。。。要将加锁放在调用<code>Min()</code>之后。</li>
 </ol>
 
-<p>由于之前的代码没有修改完整，所以导致对日志的操作时出现下标溢出。</p>
+<pre><code class="language-go">func (px *Paxos) Status(seq int) (Fate, interface{}) {
+	// Your code here.
+	px.mu.Lock()
+	defer px.mu.Unlock()
+	
+	if seq &lt; px.Min() {
+		return Forgotten, nil
+	}
 
-<p>在对日志操作的各个地方都要修改，用一个<code>baseIndex := rf.log[0].LogIndex</code>来作为每个日志的零点。</p>
+	instance, exist := px.instances[seq]
+	if !exist {
+		return Pending, nil
+	}
 
-<ol>
-<li>卡死在<code>InstallSnapshot RPC</code>？
-这个错误在lab2扔记忆犹新，因此我特意检查了各个Channel，发现<code>applyCh</code>是一个阻塞通道，
-果断修改为非阻塞队列。但是依旧卡死。。。</li>
-</ol>
-
-<p>用lab2的测试结果<code>basic agreement</code>就已经fail了。</p>
-
-<p>说明修改了lab2的一些代码中出了问题。经检查，发现了一个低级错误：在<code>Start()</code>中的
-初始化日志没有初始化新添加的<code>LogIndex</code>成员，所以在之后<code>baseIndex</code>也会使用错误。</p>
-
-<p>修改完之后就能通过PartB的第一个测试<code>InstallSnapshot RPC</code>。</p>
-
-<ol>
-<li>通不过测试<code>persistence with one client and snapshots</code></li>
-</ol>
-
-<p>错误说明：</p>
-
-<pre><code>2018/11/21 19:03:22 get wrong value, key 0, wanted:
-x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 yx 0 21 yx 0 22 yx 0 23 yx 0 24 yx 0 25 yx 0 26 y
-, got
-x 0 0 yx 0 1 yx 0 2 yx 0 3 yx 0 4 yx 0 5 yx 0 6 yx 0 7 yx 0 8 yx 0 9 yx 0 10 yx 0 11 yx 0 12 yx 0 13 yx 0 14 yx 0 15 yx 0 16 yx 0 17 yx 0 18 yx 0 19 yx 0 20 y
-exit status 1
+	return instance.state, instance.acceptValue
+}
 </code></pre>
 
-<p>根据测试给出的提示，是日志缺少了。</p>
+<ol>
+<li>rpc: can&rsquo;t find service Paxos.Prepare
+不满足rpc的要求：
+```
+只有满足如下标准的方法才能用于远程访问，其余方法会被忽略：</li>
+<li>方法是导出的</li>
+<li>方法有两个参数，都是导出类型或内建类型</li>
+<li>方法的第二个参数是指针</li>
+<li>方法只有一个error接口类型的返回值</li>
+</ol>
 
-<p>找了我一整天，终于发现了bug了。。。而且还是很低级的bug：
-在<code>readSnapshot()</code>函数中，以下是正确做法：</p>
+<p>事实上，方法必须看起来像这样：
+func (t *T) MethodName(argType T1, replyType *T2) error</p>
 
-<pre><code class="language-go">d.Decode(&amp;LastIncludedIndex)
-d.Decode(&amp;LastIncludedTerm)
+<pre><code>
+3. 卡在accept阶段
+是由于在`Accept`中把等于之前`proposeNum`的情况给认为是失败的，与之前`Prepare`不同，Prepare阶段是没有相同的`proposeNum`的。
+```go
+ins, exist := px.instances[args.Seq]
+if exist {
+	// 存在就比较编号大小，与Prepare不同，还可以接受等于的
+	if args.AcceptPNum &gt;= ins.proposeNum {
+		reply.Success = true
+	} else {
+		reply.Success = false
+	}
+} else {
+	// 不存在就创建一个
+	ins = instance {
+		state: Pending,
+	}
+	px.instances[args.Seq] = ins
+	reply.Success = true
+}
 </code></pre>
 
-<p>之前我忘了加<code>&amp;</code>，导致decode失败，之后的操作必然会受影响。</p>
-
-<h2 id="测试-1">测试</h2>
-
-<pre><code class="language-shell">$ go test
-Test: One client ...
-  ... Passed
-Test: concurrent clients ...
-  ... Passed
-Test: unreliable ...
-  ... Passed
-Test: Concurrent Append to same key, unreliable ...
-  ... Passed
-Test: Progress in majority ...
-  ... Passed
-Test: No progress in minority ...
-  ... Passed
-Test: Completion after heal ...
-  ... Passed
-Test: many partitions ...
-2018/11/21 21:24:22 Warning: client 0 managed to perform only 7 put operations in 1 sec?
-2018/11/21 21:24:30 Warning: client 0 managed to perform only 7 put operations in 1 sec?
-  ... Passed
-Test: many partitions, many clients ...
-2018/11/21 21:24:45 Warning: client 1 managed to perform only 8 put operations in 1 sec?
-  ... Passed
-Test: persistence with one client ...
-  ... Passed
-Test: persistence with concurrent clients ...
-  ... Passed
-Test: persistence with concurrent clients, unreliable ...
-  ... Passed
-Test: persistence with concurrent clients and repartitioning servers...
-  ... Passed
-Test: persistence with concurrent clients and repartitioning servers, unreliable...
-2018/11/21 21:26:45 Warning: client 1 managed to perform only 7 put operations in 1 sec?
-2018/11/21 21:26:45 Warning: client 2 managed to perform only 5 put operations in 1 sec?
-2018/11/21 21:26:45 Warning: client 3 managed to perform only 7 put operations in 1 sec?
-2018/11/21 21:26:46 Warning: client 4 managed to perform only 2 put operations in 1 sec?
-2018/11/21 21:26:54 Warning: client 0 managed to perform only 4 put operations in 1 sec?
-2018/11/21 21:26:55 Warning: client 1 managed to perform only 8 put operations in 1 sec?
-2018/11/21 21:26:55 Warning: client 2 managed to perform only 7 put operations in 1 sec?
-2018/11/21 21:26:56 Warning: client 3 managed to perform only 8 put operations in 1 sec?
-2018/11/21 21:26:56 Warning: client 4 managed to perform only 9 put operations in 1 sec?
-2018/11/21 21:27:06 Warning: client 3 managed to perform only 9 put operations in 1 sec?
-  ... Passed
-
-Test: InstallSnapshot RPC ...
-  ... Passed
-Test: persistence with one client and snapshots ...
-  ... Passed
-Test: persistence with several clients and snapshots ...
-  ... Passed
-Test: persistence with several clients, snapshots, unreliable ...
-  ... Passed
-Test: persistence with several clients, failures, and snapshots, unreliable ...
-  ... Passed
-Test: persistence with several clients, failures, and snapshots, unreliable and partitions ...
-2018/11/21 21:28:50 Warning: client 1 managed to perform only 9 put operations in 1 sec?
-2018/11/21 21:28:51 Warning: client 3 managed to perform only 8 put operations in 1 sec?
-2018/11/21 21:28:51 Warning: client 4 managed to perform only 8 put operations in 1 sec?
-2018/11/21 21:29:09 Warning: client 0 managed to perform only 8 put operations in 1 sec?
-2018/11/21 21:29:11 Warning: client 4 managed to perform only 6 put operations in 1 sec?
-  ... Passed
+<ol>
+<li>成功
+<code>
+$ go test
+Test: Single proposer ...
+... Passed
+Test: Many proposers, same value ...
+... Passed
+Test: Many proposers, different values ...
+... Passed
+Test: Out-of-order instances ...
+... Passed
+Test: Forgetting ...
+... Passed
+Test: Lots of forgetting ...
+... Passed
+Test: Paxos frees forgotten instance memory ...
+... Passed
+Test: Paxos Max() after Done()s ...
+... Passed
+Test: Many instances ...
+... Passed
+Test: Many instances, unreliable RPC ...
+... Passed
+Test: No decision if partitioned ...
+... Passed
+Test: Decision in majority partition ...
+... Passed
+Test: All agree after full heal ...
+... Passed
+Test: One peer switches partitions ...
+... Passed
+Test: One peer switches partitions, unreliable ...
+... Passed
+Test: Many requests, changing partitions ...
+... Passed
 PASS
-ok  	kvraft	351.767s
-</code></pre>
+ok  	paxos	53.074s
+</code></li>
+</ol>
 
 <h1 id="总结">总结</h1>
 
-<p>接着实验二做实验三感觉很好。</p>
-
-<p>A部分主要是理解客户端要怎么与服务端交互并且服务端怎么与Raft交互，理清楚之后实现就很简单了。</p>
-
-<p>B部分则要搞清楚日志要怎么删除，之前的有关日志的操作基本都要修改了。</p>
-
-<p>由于犯了两个低级错误，浪费了好多时间，调试的能力还需加强啊。</p>
+<p>有了之前实现Raft的经验，而且这次的实验也只是实现简单的Paxos状态机，相对来说不难实现。</p>
               
             </div>
           </div>
@@ -699,7 +434,7 @@ ok  	kvraft	351.767s
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -707,7 +442,7 @@ ok  	kvraft	351.767s
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/" data-tooltip="MIT6.824分布式系统实验二之Raft">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/" data-tooltip="MIT6.824分布式系统实验三之KV-Raft">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -767,7 +502,7 @@ ok  	kvraft	351.767s
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -775,7 +510,7 @@ ok  	kvraft	351.767s
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/" data-tooltip="MIT6.824分布式系统实验二之Raft">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/" data-tooltip="MIT6.824分布式系统实验三之KV-Raft">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -1109,9 +844,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos\/';
           
-            this.page.identifier = '\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft\/'
+            this.page.identifier = '\/2018\/11\/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos\/'
           
         };
         (function() {
