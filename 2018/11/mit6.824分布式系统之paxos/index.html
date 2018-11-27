@@ -329,24 +329,28 @@ px.Min() int // instances before this have been forgotten
 </code></pre>
 
 <ol>
-<li>rpc: can&rsquo;t find service Paxos.Prepare
-不满足rpc的要求：
-```
-只有满足如下标准的方法才能用于远程访问，其余方法会被忽略：</li>
-<li>方法是导出的</li>
-<li>方法有两个参数，都是导出类型或内建类型</li>
-<li>方法的第二个参数是指针</li>
-<li>方法只有一个error接口类型的返回值</li>
+<li>rpc: can&rsquo;t find service Paxos.Prepare</li>
 </ol>
 
-<p>事实上，方法必须看起来像这样：
-func (t *T) MethodName(argType T1, replyType *T2) error</p>
+<p>不满足rpc的要求：</p>
 
-<pre><code>
-3. 卡在accept阶段
-是由于在`Accept`中把等于之前`proposeNum`的情况给认为是失败的，与之前`Prepare`不同，Prepare阶段是没有相同的`proposeNum`的。
-```go
-ins, exist := px.instances[args.Seq]
+<pre><code>只有满足如下标准的方法才能用于远程访问，其余方法会被忽略：
+- 方法是导出的
+- 方法有两个参数，都是导出类型或内建类型
+- 方法的第二个参数是指针
+- 方法只有一个error接口类型的返回值
+
+事实上，方法必须看起来像这样：
+func (t *T) MethodName(argType T1, replyType *T2) error
+</code></pre>
+
+<ol>
+<li>卡在accept阶段</li>
+</ol>
+
+<p>是由于在<code>Accept</code>中把等于之前<code>proposeNum</code>的情况给认为是失败的，与之前<code>Prepare</code>不同，Prepare阶段是没有相同的<code>proposeNum</code>的。</p>
+
+<pre><code class="language-go">ins, exist := px.instances[args.Seq]
 if exist {
 	// 存在就比较编号大小，与Prepare不同，还可以接受等于的
 	if args.AcceptPNum &gt;= ins.proposeNum {
@@ -365,45 +369,45 @@ if exist {
 </code></pre>
 
 <ol>
-<li>成功
-<code>
-$ go test
+<li>成功</li>
+</ol>
+
+<pre><code>$ go test
 Test: Single proposer ...
-... Passed
+  ... Passed
 Test: Many proposers, same value ...
-... Passed
+  ... Passed
 Test: Many proposers, different values ...
-... Passed
+  ... Passed
 Test: Out-of-order instances ...
-... Passed
+  ... Passed
 Test: Forgetting ...
-... Passed
+  ... Passed
 Test: Lots of forgetting ...
-... Passed
+  ... Passed
 Test: Paxos frees forgotten instance memory ...
-... Passed
+  ... Passed
 Test: Paxos Max() after Done()s ...
-... Passed
+  ... Passed
 Test: Many instances ...
-... Passed
+  ... Passed
 Test: Many instances, unreliable RPC ...
-... Passed
+  ... Passed
 Test: No decision if partitioned ...
-... Passed
+  ... Passed
 Test: Decision in majority partition ...
-... Passed
+  ... Passed
 Test: All agree after full heal ...
-... Passed
+  ... Passed
 Test: One peer switches partitions ...
-... Passed
+  ... Passed
 Test: One peer switches partitions, unreliable ...
-... Passed
+  ... Passed
 Test: Many requests, changing partitions ...
-... Passed
+  ... Passed
 PASS
 ok  	paxos	53.074s
-</code></li>
-</ol>
+</code></pre>
 
 <h1 id="总结">总结</h1>
 
