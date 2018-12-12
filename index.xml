@@ -6,10 +6,20 @@
     <description>Recent content on liu-jianhao&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 08 Dec 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 10 Dec 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://liu-jianhao.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>yfs实现第五步——Paxos</title>
+      <link>https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%94%E6%AD%A5paxos/</link>
+      <pubDate>Mon, 10 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%94%E6%AD%A5paxos/</guid>
+      <description>&lt;p&gt;yfs是一个分布式文件系统，第五步实现分布式一致性算法Paxos
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>yfs实现第四步——文件服务缓存</title>
