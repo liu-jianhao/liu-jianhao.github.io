@@ -214,191 +214,189 @@
 
 <h1 id="前言">前言</h1>
 
-<p>YFS的架构：
-<img src="https://img-blog.csdnimg.cn/20181129194609433.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" /></p>
+<p>yfs服务器需要一个锁服务器来协调文件系统结构的更新。</p>
 
-<p>YFS模块实现核心文件系统逻辑，这个模块作为<code>yfs_client</code>的单个进程运行，该进程支持本地主机上的挂载点，该模块有两部分组成：
-1. FUSE接口：在<code>fuse.cc</code>中，它将FUSE操作从FUSE内核模块转换为YES客户端调用。
-2. YES客户端：<code>yfs_client.{cc,h}，YES实现客户端文件系统逻辑，使用锁和扩展服务器来帮助它。
-例如，在创建新文件时，</code>yfs_client`会将目录条目添加到扩展服务器的目录块中。</p>
+<p>锁服务包括两个模块，锁客户端和锁服务器，它们通过RPC通信：客户端通过发送获取请求从锁服务器请求锁，锁服务器一次向一个客户端授予请求的锁，当客户端完成授予的锁定时，它会向服务器发送一个释放请求，以便服务器可以将锁授予另一个等待获取锁的客户端（如果有）。</p>
 
-<p>扩展服务器存储文件系统所有的数据，类似于不同文件系统的硬盘。在将来的实验中，可以在多个主机上运行YES客户端，所有主机都与同一个扩展服务器通信；
-效果就是所有主都能看到并共享同一个文件系统。
-多个YES客户端可以共享数据的唯一方法就是通过扩展服务器。
-扩展服务器由两部分构成：
-1. <code>extent_client</code>，使用RPC与extent server进行通信的包装类
-2. <code>extent_server</code>，扩展服务器管理一个简单的键值存储，以<code>extent_protocol::extentid_t</code>为键，以<code>string</code>以及对应的属性为值。</p>
+<p>除了实现上面的功能，还需要是RPC支持最多执行一次的语义。存在重复请求是因为RPC系统必须要重新传输丢失的RPC请求，所以这会导致重复的RPC请求传递</p>
 
-<h2 id="part1-create-mknod-lookup-and-readdir">Part1：CREATE/MKNOD, LOOKUP, and READDIR</h2>
+<h2 id="step-one-假设网络正常-实现锁服务器">Step One：假设网络正常，实现锁服务器</h2>
 
-<h2 id="part2-setattr-read-write">Part2：SETATTR,READ,WRITE</h2>
+<h3 id="使用rpc">使用RPC</h3>
 
-<p>这两个部分完成的代码是类似的，只是实现的功能不同。</p>
+<ul>
+<li>服务器通过创建侦听端口并注册各种RPC处理程序的RPC服务器对象(rpcs)来使用RPC库。</li>
+<li>客户端创建RPC客户端对象(rpcc)，要求它连接到<code>lock_server</code>的地址和端口，并调用RPC。</li>
+<li>每个RPC都有一个唯一的过程标识号，使用RPC服务器对象时要注册这些RPC的处理程序</li>
+</ul>
 
-<ol>
-<li>首先完成<code>extent_server.{h,cc}</code>，这个服务器要实现一个简单的键值对存储，能实现<code>put</code>、<code>get</code>、<code>getattr</code>、<code>remove</code>的功能。这些方法会在之后实现<code>yfs_client</code>时用到，例如要创建一个文件，则需要<code>get</code>一个目录，然后<code>put</code>创建一个文件，最后<code>put</code>将创建的文件放入该目录。</li>
-<li>接着实现<code>yfs_client.{h,cc}</code>，要能实现上面标题所显示的六种方法，最重要的是能理解<code>inum</code>是什么及有什么用，每个文件或者目录都有唯一的inum，因此还要实现一个产生唯一的<code>inum</code>的函数。</li>
-<li>最后就是实现<code>fuse.cc</code>了，参考注释很快就能完成了，这里会调用到上一步骤实现的函数。</li>
-</ol>
+<p><code>lock_smain.cc</code>中服务器注册RPC调用</p>
 
-<h2 id="调试">调试</h2>
-
-<h3 id="create错误">create错误</h3>
-
-<pre><code class="language-shell">test-lab-2-a: cannot create ./yfs1/file-yxfsroxwdfzzniqgxqzgxjpyxtwdievwhenavyda-24012-0 : No such file or directory
+<pre><code class="language-cpp">server.reg(lock_protocol::acquire, &amp;ls, &amp;lock_server::acquire);
+server.reg(lock_protocol::release, &amp;ls, &amp;lock_server::release);
 </code></pre>
 
-<p>第一次create就失败了，检查一下有关create的代码，没发现有什么问题。回去再看一遍实验指导，发现有这样一句话：</p>
+<h3 id="实现锁服务器">实现锁服务器</h3>
 
-<pre><code>FUSE假定根目录的inum是0x00000001。因此，您需要确保在yfs_client启动时，它已准备好导出存储在该inum下的空目录。
-</code></pre>
+<ul>
+<li>用<code>map</code>保存锁的状态表，用<code>lock_protocol::lockid_t</code>作为key，用锁作为vlaue</li>
+<li>锁要自己实现</li>
+</ul>
 
-<p>因此要在<code>extent_server</code>的构造函数中加上两行：</p>
+<p>自己实现的锁类(<code>lock_protocol.h</code>)：</p>
 
-<pre><code class="language-cpp">  int ret;
-  put(1, &quot;&quot;, ret);
-</code></pre>
-
-<h3 id="open错误">open错误</h3>
-
-<pre><code class="language-shell">test-lab-2-a: cannot open ./yfs1/file-nmhxcnnviodnsyfqcasqiorffhpoxtetbrhanteo-30075-198 : No such file or directory
-</code></pre>
-
-<p>经检查，发现了一个错误，在创建文件时，只是创建了文件，但并没有与目录绑定。
-在第二个调用<code>put</code>中要是传入参数的目录的<code>inum</code>。</p>
-
-<pre><code class="language-cpp">int
-yfs_client::create(inum parent, const char* name, inum&amp; inum)
-{
-  std::string data;
-  std::string file_name;
-  if(ec-&gt;get(parent, data) != extent_protocol::OK)
-  {
-    return IOERR;
-  }
-
-  file_name = &quot;/&quot; + std::string(name) + &quot;/&quot;;
-  // 文件已经存在
-  if (data.find(file_name) != std::string::npos)
-  {
-    return EXIST;
-  }
-
-  inum = random_inum(true);
-  if(ec-&gt;put(inum, std::string()) != extent_protocol::OK)
-  {
-    return IOERR;
-  }
-
-  data.append(file_name + filename(inum) + &quot;/&quot;);
-  if(ec-&gt;put(parent, data) != extent_protocol::OK)
-  {
-    return IOERR;
-  }
-
-  return OK;
-}
-</code></pre>
-
-<h2 id="测试">测试</h2>
-
-<pre><code class="language-shell">$ ./start.sh 
-starting ./lock_server 29818 &gt; lock_server.log 2&gt;&amp;1 &amp;
-starting ./extent_server 29812 &gt; extent_server.log 2&gt;&amp;1 &amp;
-starting ./yfs_client /home/liu/Desktop/yfsCpp11/lab2/yfs1 29812 29818 &gt; yfs_client1.log 2&gt;&amp;1 &amp;
-starting ./yfs_client /home/liu/Desktop/yfsCpp11/lab2/yfs2 29812 29818 &gt; yfs_client2.log 2&gt;&amp;1 &amp;
-$ ./test-lab-2-a.pl ./yfs1 
-create file-cmrivvpetwwtwdazsapiphcemhnfinxrgdzxgqvi-13540-0
-create file-wybthquccdqwjexfmngiseabesctrnoyyxtvpbta-13540-1
-create file-ncrjwuoozrtdgggmqlxgmwuzpctamfvhhuasvdkr-13540-2
-...
-...
-Passed all tests!
-$ ./test-lab-2-b.pl ./yfs1 ./yfs2
-Write and read one file: OK
-Write and read a second file: OK
-Overwrite an existing file: OK
-Append to an existing file: OK
-Write into the middle of an existing file: OK
-Write beyond the end of an existing file: OK
-Check that one cannot open non-existant file: OK
-Check directory listing: OK
-Read files via second server: OK
-Check directory listing on second server: OK
-Passed all tests
-</code></pre>
-
-<h2 id="part3-mkdir-unlink">Part3：MKDIR, UNLINK</h2>
-
-<p>这一部分与上一次实验完成的内容差不多，有了前面的理解，这一部分很简单。</p>
-
-<h2 id="part4-locking">Part4：Locking</h2>
-
-<p>最简单的方法就是为整个文件系统提供单个锁，或是锁定整个目录，但这些都不好。</p>
-
-<p>锁应该与每个内容相关联，使用文件或目录的<code>inum</code>作为锁的名称，利用之前在<code>lock_client</code>的实现，每个<code>yfs_client</code>都有一个<code>lock_client</code>。</p>
-
-<pre><code class="language-cpp">class yfs_client {
-  extent_client *ec;
-  lock_client *m_lc;
+<pre><code class="language-cpp">class lock {
 public:
-  ...
-</code></pre>
-
-<p>而在CREATE等方法中如果直接使用<code>m_lc</code>的话会比较繁杂，可以自己实现一个锁类，采用RAII(资源获取即初始化)，
-类似于标准库中的<code>lock_guard</code>。</p>
-
-<pre><code class="language-cpp">class LockGuard {
-public:
-  LockGuard(lock_client *lc, lock_protocol::lockid_t lid) : m_lc(lc), m_lid(lid)
-  {
-    m_lc-&gt;acquire(m_lid);
-  }
-
-  ~LockGuard()
-  {
-    m_lc-&gt;release(m_lid);
-  }
-private:
-  lock_client *m_lc;
+  enum lock_status {FREE, LOCKED};
+  // 用这个来标识每个锁
   lock_protocol::lockid_t m_lid;
+  // FREE or LOCKED
+  int m_state;
+  // 条件变量
+  std::condition_variable m_cv;
+
+  // 构造函数
+  lock(lock_protocol::lockid_t lid, int state);
 };
 </code></pre>
 
-<h2 id="测试-1">测试</h2>
+<p><code>lock_server.cc</code></p>
 
-<h3 id="part1">Part1</h3>
-
-<pre><code class="language-shell">$ ./test-lab-3-a.pl ./yfs1
-mkdir ./yfs1/d14527
-create x-0
-delete x-0
-create x-1
-checkmtime x-1
-checkdirmtime
-...
-...
-Passed all tests!
+<pre><code class="language-cpp">lock::lock(lock_protocol::lockid_t lid, int state) : m_lid(lid), m_state(state)
+{
+}
 </code></pre>
 
-<h3 id="part2">Part2</h3>
+<h3 id="实现锁客户端">实现锁客户端</h3>
 
-<pre><code class="language-shell">$ ./test-lab-3-b ./yfs1 ./yfs2
-Create then read: OK
-Unlink: OK
-Append: OK
-Readdir: OK
-Many sequential creates: OK
-Write 20000 bytes: OK
-Concurrent creates: OK
-Concurrent creates of the same file: OK
-Concurrent create/delete: OK
-Concurrent creates, same file, same server: OK
-Concurrent writes to different parts of same file: OK
-test-lab-3-b: Passed all tests.
-$ ./test-lab-3-c ./yfs1 ./yfs2
-Create/delete in separate directories: tests completed OK
+<ul>
+<li>获得锁：发送RPC<code>acquire()</code></li>
+<li>释放锁：接收RPC<code>release()</code></li>
+</ul>
+
+<p><code>lock_client.cc</code>中客户端调用RPC</p>
+
+<pre><code class="language-cpp">lock_protocol::status
+lock_client::acquire(lock_protocol::lockid_t lid)
+{
+  int r;
+  int ret = cl-&gt;call(lock_protocol::acquire, cl-&gt;id(), lid, r);
+  VERIFY (ret == lock_protocol::OK);
+  return r;
+}
+
+lock_protocol::status
+lock_client::release(lock_protocol::lockid_t lid)
+{
+  int r;
+  int ret = cl-&gt;call(lock_protocol::release, cl-&gt;id(), lid, r);
+  VERIFY (ret == lock_protocol::OK);
+  return r;
+}
 </code></pre>
+
+<h3 id="处理多线程并发">处理多线程并发</h3>
+
+<ul>
+<li>访问共享变量时要加锁</li>
+</ul>
+
+<p><code>lock_server.cc</code>中RPC调用的实现</p>
+
+<pre><code class="language-cpp">lock_protocol::status
+lock_server::acquire(int clt, lock_protocol::lockid_t lid, int &amp;r)
+{
+  lock_protocol::status ret = lock_protocol::OK;
+
+  std::unique_lock&lt;std::mutex&gt; lck(m_mutex);
+
+  auto iter = m_lockMap.find(lid);
+  if (iter != m_lockMap.end())
+  {
+    while(iter-&gt;second-&gt;m_state != lock::FREE)
+    {
+      iter-&gt;second-&gt;m_cv.wait(lck);
+    }
+    iter-&gt;second-&gt;m_state = lock::LOCKED;
+  }
+  else
+  {
+    // 没找到就新建一个锁
+    auto p_mutex = new lock(lid, lock::LOCKED);
+    m_lockMap.insert(std::pair&lt;lock_protocol::lockid_t, lock*&gt;(lid, p_mutex));
+  }
+
+  return ret;
+}
+
+lock_protocol::status
+lock_server::release(int clt, lock_protocol::lockid_t lid, int &amp;r)
+{
+  lock_protocol::status ret = lock_protocol::OK;
+
+  std::unique_lock&lt;std::mutex&gt; lck(m_mutex);
+
+  auto iter = m_lockMap.find(lid);
+  if (iter != m_lockMap.end())
+  {
+    iter-&gt;second-&gt;m_state = lock::FREE;
+    iter-&gt;second-&gt;m_cv.notify_all();
+  }
+  else
+  {
+    ret = lock_protocol::IOERR;
+  }
+
+  m_mutex.unlock();
+  return ret;
+}
+</code></pre>
+
+<h3 id="测试">测试</h3>
+
+<p>先启动服务器</p>
+
+<pre><code class="language-shell">$ ./lock_server 7749
+</code></pre>
+
+<p>调用测试程序</p>
+
+<pre><code class="language-shell">$ ./lock_tester localhost:7749
+simple lock client
+省略...
+./lock_tester: passed all tests successfully
+</code></pre>
+
+<h2 id="step-two-实现rpc的at-most-once执行">Step Two：实现RPC的at-most-once执行</h2>
+
+<h3 id="rpc处理流程">RPC处理流程</h3>
+
+<p>已经提供的RPC代码中已经具有at-most-once执行的客户端实现：客户端在等待响应超时时，重新发送请求，
+并为每个请求提供服务器将需要的信息(<code>req_header</code>)。</p>
+
+<p>RPCS接收到RPC请求时，调用<code>rpcs::got_pdu</code>将请求分派到线程池(<code>ThrPool</code>)中的线程。
+线程池有固定数量的线程组成，这些线程调用<code>rpcs::dispatch</code>将RPC请求分派给相关的已注册RPC处理程序。</p>
+
+<p>但是服务端中还需要完善两个函数<code>rpcs::checkduplicate_and_update</code>和<code>rpcs::add_reply</code>。</p>
+
+<h3 id="怎么实现at-most-once">怎么实现at-most-once？</h3>
+
+<p>这里采用的方法是记录已收到的RPC请求，每个RPC用<code>xid</code>和<code>clt_nonce</code>来标识，
++ <code>xid</code>则用来标识某个客户端的一个请求
++ <code>clt_nonce</code>用来标识客户端
+由于记录这些请求很消耗内存，所以需要用到滑动窗口，这就需要<code>xid</code>是递增的，
+每个请求除了上面两个信息之外还需要包含<code>xid_rep</code>
++ <code>xid_rep</code>用来标识这个请求的客户端已经接收到回复了
+有了这个信息服务端就可以清楚已经收到回复的这些请求</p>
+
+<h3 id="测试-1">测试</h3>
+
+<p>先将将RPC_LOSSY设置为5：</p>
+
+<pre><code class="language-shell">$ export RPC_LOSSY=5
+</code></pre>
+
+<p>再次如Setp One那样测试，同样能通过测试。</p>
               
             </div>
           </div>
@@ -423,7 +421,7 @@ Create/delete in separate directories: tests completed OK
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第三步——锁缓存">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -431,7 +429,7 @@ Create/delete in separate directories: tests completed OK
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -491,7 +489,7 @@ Create/delete in separate directories: tests completed OK
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第三步——锁缓存">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -499,7 +497,7 @@ Create/delete in separate directories: tests completed OK
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -590,6 +588,24 @@ Create/delete in separate directories: tests completed OK
       <div class="no-result text-color-light text-center">no post found</div>
       <div class="results">
         
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/">
+                <h3 class="media-heading">yfs实现第三步——锁缓存</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
         
           <div class="media">
             
@@ -753,24 +769,6 @@ Create/delete in separate directories: tests completed OK
             <hr>
           </div>
         
-          <div class="media">
-            
-            <div class="media-body">
-              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/10/c--%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">
-                <h3 class="media-heading">C&#43;&#43;设计模式</h3>
-              </a>
-              <span class="media-meta">
-                <span class="media-date text-small">
-                  Oct 10, 2018
-                </span>
-              </span>
-              <div class="media-content hide-xs font-merryweather"><p>C++设计模式简单总结
-</p></div>
-            </div>
-            <div style="clear:both;"></div>
-            <hr>
-          </div>
-        
       </div>
     </div>
     <div class="modal-footer">
@@ -778,7 +776,7 @@ Create/delete in separate directories: tests completed OK
          data-message-zero="no post found"
          data-message-one="1 post found"
          data-message-other="{n} posts found">
-         16 posts found
+         17 posts found
       </p>
     </div>
   </div>

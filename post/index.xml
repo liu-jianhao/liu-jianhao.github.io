@@ -6,10 +6,20 @@
     <description>Recent content in Posts on liu-jianhao&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 29 Nov 2018 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 05 Dec 2018 00:00:00 +0000</lastBuildDate>
     
 	<atom:link href="https://liu-jianhao.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>yfs实现第三步——锁缓存</title>
+      <link>https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/</link>
+      <pubDate>Wed, 05 Dec 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/</guid>
+      <description>&lt;p&gt;yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+&lt;/p&gt;</description>
+    </item>
     
     <item>
       <title>yfs实现第一步——锁服务</title>
