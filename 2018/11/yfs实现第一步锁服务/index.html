@@ -8,19 +8,37 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="Hugo tranquilpeak theme demo">
+<meta name="description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
+">
 
 
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Posts">
-<meta name="twitter:title" content="Posts">
-<meta property="og:url" content="https://liu-jianhao.github.io/post/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/post/">
+<meta property="og:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="yfs实现第一步——锁服务">
+<meta name="twitter:title" content="yfs实现第一步——锁服务">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta name="twitter:description" content="Hugo tranquilpeak theme demo">
+<meta property="og:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
+">
+<meta name="twitter:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
+">
 <meta property="og:locale" content="en-us">
+
+  
+    <meta property="article:published_time" content="2018-11-29T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2018-11-29T00:00:00">
+  
+  
+  
+  
+    
+      <meta property="article:tag" content="分布式文件系统">
+    
+  
 
 
 <meta name="twitter:card" content="summary">
@@ -39,16 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>Posts</title>
+    <title>yfs实现第一步——锁服务</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://liu-jianhao.github.io/post/index.xml">
-    
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/post/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -68,7 +84,7 @@
 
   <body>
     <div id="blog">
-      <header id="header" data-behavior="1">
+      <header id="header" data-behavior="4">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
     <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
@@ -76,7 +92,7 @@
   
 </header>
 
-      <nav id="sidebar" data-behavior="1">
+      <nav id="sidebar" data-behavior="4">
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
@@ -164,35 +180,20 @@
 
       
 
-      <div id="main" data-behavior="1"
+      <div id="main" data-behavior="4"
         class="
                hasCoverMetaIn
                ">
-        <section class="postShorten-group main-content-wrap">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
           
           
-            
+            <div class="post-header main-content-wrap text-left">
   
-    
-      
-        
-      
-    
+    <h1 class="post-title" itemprop="headline">
+      yfs实现第一步——锁服务
+    </h1>
   
-
-
   
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/">
-          yfs实现第一步——锁服务
-        </a>
-      </h1>
-      
   <div class="postShorten-meta post-meta">
     
       <time itemprop="datePublished" datetime="2018-11-29T00:00:00Z">
@@ -204,336 +205,275 @@
     
   </div>
 
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>yfs是一个分布式文件系统，第一步先实现一个锁服务
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
+</div>
           
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>yfs是一个分布式文件系统，第一步先实现一个锁服务
+</p>
+
+<h1 id="前言">前言</h1>
+
+<p>yfs服务器需要一个锁服务器来协调文件系统结构的更新。</p>
+
+<p>锁服务包括两个模块，锁客户端和锁服务器，它们通过RPC通信：客户端通过发送获取请求从锁服务器请求锁，锁服务器一次向一个客户端授予请求的锁，当客户端完成授予的锁定时，它会向服务器发送一个释放请求，以便服务器可以将锁授予另一个等待获取锁的客户端（如果有）。</p>
+
+<p>除了实现上面的功能，还需要是RPC支持最多执行一次的语义。存在重复请求是因为RPC系统必须要重新传输丢失的RPC请求，所以这会导致重复的RPC请求传递</p>
+
+<h2 id="step-one-假设网络正常-实现锁服务器">Step One：假设网络正常，实现锁服务器</h2>
+
+<h3 id="使用rpc">使用RPC</h3>
+
+<ul>
+<li>服务器通过创建侦听端口并注册各种RPC处理程序的RPC服务器对象(rpcs)来使用RPC库。</li>
+<li>客户端创建RPC客户端对象(rpcc)，要求它连接到<code>lock_server</code>的地址和端口，并调用RPC。</li>
+<li>每个RPC都有一个唯一的过程标识号，使用RPC服务器对象时要注册这些RPC的处理程序</li>
+</ul>
+
+<p><code>lock_smain.cc</code>中服务器注册RPC调用</p>
+
+<pre><code class="language-cpp">server.reg(lock_protocol::acquire, &amp;ls, &amp;lock_server::acquire);
+server.reg(lock_protocol::release, &amp;ls, &amp;lock_server::release);
+</code></pre>
+
+<h3 id="实现锁服务器">实现锁服务器</h3>
+
+<ul>
+<li>用<code>map</code>保存锁的状态表，用<code>lock_protocol::lockid_t</code>作为key，用锁作为vlaue</li>
+<li>锁要自己实现</li>
+</ul>
+
+<p>自己实现的锁类(<code>lock_protocol.h</code>)：</p>
+
+<pre><code class="language-cpp">class lock {
+public:
+  enum lock_status {FREE, LOCKED};
+  // 用这个来标识每个锁
+  lock_protocol::lockid_t m_lid;
+  // FREE or LOCKED
+  int m_state;
+  // 条件变量
+  std::condition_variable m_cv;
+
+  // 构造函数
+  lock(lock_protocol::lockid_t lid, int state);
+};
+</code></pre>
+
+<p><code>lock_server.cc</code></p>
+
+<pre><code class="language-cpp">lock::lock(lock_protocol::lockid_t lid, int state) : m_lid(lid), m_state(state)
+{
+}
+</code></pre>
+
+<h3 id="实现锁客户端">实现锁客户端</h3>
+
+<ul>
+<li>获得锁：发送RPC<code>acquire()</code></li>
+<li>释放锁：接收RPC<code>release()</code></li>
+</ul>
+
+<p><code>lock_client.cc</code>中客户端调用RPC</p>
+
+<pre><code class="language-cpp">lock_protocol::status
+lock_client::acquire(lock_protocol::lockid_t lid)
+{
+  int r;
+  int ret = cl-&gt;call(lock_protocol::acquire, cl-&gt;id(), lid, r);
+  VERIFY (ret == lock_protocol::OK);
+  return r;
+}
+
+lock_protocol::status
+lock_client::release(lock_protocol::lockid_t lid)
+{
+  int r;
+  int ret = cl-&gt;call(lock_protocol::release, cl-&gt;id(), lid, r);
+  VERIFY (ret == lock_protocol::OK);
+  return r;
+}
+</code></pre>
+
+<h3 id="处理多线程并发">处理多线程并发</h3>
+
+<ul>
+<li>访问共享变量时要加锁</li>
+</ul>
+
+<p><code>lock_server.cc</code>中RPC调用的实现</p>
+
+<pre><code class="language-cpp">lock_protocol::status
+lock_server::acquire(int clt, lock_protocol::lockid_t lid, int &amp;r)
+{
+  lock_protocol::status ret = lock_protocol::OK;
+
+  std::unique_lock&lt;std::mutex&gt; lck(m_mutex);
+
+  auto iter = m_lockMap.find(lid);
+  if (iter != m_lockMap.end())
+  {
+    while(iter-&gt;second-&gt;m_state != lock::FREE)
+    {
+      iter-&gt;second-&gt;m_cv.wait(lck);
+    }
+    iter-&gt;second-&gt;m_state = lock::LOCKED;
+  }
+  else
+  {
+    // 没找到就新建一个锁
+    auto p_mutex = new lock(lid, lock::LOCKED);
+    m_lockMap.insert(std::pair&lt;lock_protocol::lockid_t, lock*&gt;(lid, p_mutex));
+  }
+
+  return ret;
+}
+
+lock_protocol::status
+lock_server::release(int clt, lock_protocol::lockid_t lid, int &amp;r)
+{
+  lock_protocol::status ret = lock_protocol::OK;
+
+  std::unique_lock&lt;std::mutex&gt; lck(m_mutex);
+
+  auto iter = m_lockMap.find(lid);
+  if (iter != m_lockMap.end())
+  {
+    iter-&gt;second-&gt;m_state = lock::FREE;
+    iter-&gt;second-&gt;m_cv.notify_all();
+  }
+  else
+  {
+    ret = lock_protocol::IOERR;
+  }
+
+  m_mutex.unlock();
+  return ret;
+}
+</code></pre>
+
+<h3 id="测试">测试</h3>
+
+<p>先启动服务器</p>
+
+<pre><code class="language-shell">$ ./lock_server 7749
+</code></pre>
+
+<p>调用测试程序</p>
+
+<pre><code class="language-shell">$ ./lock_tester localhost:7749
+simple lock client
+省略...
+./lock_tester: passed all tests successfully
+</code></pre>
+
+<h2 id="step-two-实现rpc的at-most-once执行">Step Two：实现RPC的at-most-once执行</h2>
+
+<h3 id="rpc处理流程">RPC处理流程</h3>
+
+<p>已经提供的RPC代码中已经具有at-most-once执行的客户端实现：客户端在等待响应超时时，重新发送请求，
+并为每个请求提供服务器将需要的信息(<code>req_header</code>)。</p>
+
+<p>RPCS接收到RPC请求时，调用<code>rpcs::got_pdu</code>将请求分派到线程池(<code>ThrPool</code>)中的线程。
+线程池有固定数量的线程组成，这些线程调用<code>rpcs::dispatch</code>将RPC请求分派给相关的已注册RPC处理程序。</p>
+
+<p>但是服务端中还需要完善两个函数<code>rpcs::checkduplicate_and_update</code>和<code>rpcs::add_reply</code>。</p>
+
+<h3 id="怎么实现at-most-once">怎么实现at-most-once？</h3>
+
+<p>这里采用的方法是记录已收到的RPC请求，每个RPC用<code>xid</code>和<code>clt_nonce</code>来标识，
++ <code>xid</code>则用来标识某个客户端的一个请求
++ <code>clt_nonce</code>用来标识客户端
+由于记录这些请求很消耗内存，所以需要用到滑动窗口，这就需要<code>xid</code>是递增的，
+每个请求除了上面两个信息之外还需要包含<code>xid_rep</code>
++ <code>xid_rep</code>用来标识这个请求的客户端已经接收到回复了
+有了这个信息服务端就可以清楚已经收到回复的这些请求</p>
+
+<h3 id="测试-1">测试</h3>
+
+<p>先将将RPC_LOSSY设置为5：</p>
+
+<pre><code class="language-shell">$ export RPC_LOSSY=5
+</code></pre>
+
+<p>再次如Setp One那样测试，同样能通过测试。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
             
-  
-    
-      
-        
-      
-    
-  
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">TAGGED IN</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E6%96%87%E4%BB%B6%E7%B3%BB%E7%BB%9F/">分布式文件系统</a>
 
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/">
-          MIT6.824分布式系统之Paxos
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-11-27T00:00:00Z">
-        
-  November 27, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>分布式一致性算法Paxos的实现
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
+                  </div>
+                
+              
             
+            <div class="post-actions-wrap">
   
-    
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
       
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
         
       
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
-          MIT6.824分布式系统实验三之KV-Raft
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
         </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-11-22T00:00:00Z">
-        
-  November 22, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>基于Raft算法的具有容错性的键值数据库的实现
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
-          MIT6.824分布式系统实验二之Raft
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-11-18T00:00:00Z">
-        
-  November 18, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>分布式一致性算法Raft的实现
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/">
-          CMU数据库系统总结
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-10-31T00:00:00Z">
-        
-  October 31, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>CMU-15-445 数据库系统总结
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/">
-          CMU数据库系统实验四之日志和恢复
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-10-30T00:00:00Z">
-        
-  October 30, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>CMU-15-445 数据库系统实验四日志和恢复
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
-          CMU数据库系统实验三之并发控制
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2018-10-25T00:00:00Z">
-        
-  October 25, 2018
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>CMU-15-445 数据库系统实验三并发控制的实现
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-          
-  <div class="pagination-bar">
-    <ul class="pagination">
-      
-        
-        
-          <li class="pagination-next">
-            <a class="btn btn--default btn--small" href="https://liu-jianhao.github.io/post/page/2/">
-              <span>OLDER POSTS</span>
-              <i class="fa fa-angle-right text-base icon-ml"></i>
-            </a>
-          </li>
-        
-      
-      <li class="pagination-number">page 1 of 3</li>
+      </li>
     </ul>
-  </div>
+  
+</div>
 
-
-        </section>
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2018 liu jianhao. All Rights Reserved
@@ -541,6 +481,66 @@
 </footer>
 
       </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/" data-tooltip="MIT6.824分布式系统之Paxos">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
     </div>
     
     <div id="about">
@@ -826,6 +826,32 @@ $(document).ready(function() {
 });
 </script>
 
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/11\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1\/';
+          
+            this.page.identifier = '\/2018\/11\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'hugo-tranquilpeak-theme';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
 
 
 
