@@ -8,29 +8,29 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+<meta name="description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
 ">
 
 
-<meta property="og:description" content="yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+<meta property="og:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="yfs实现第三步——锁缓存">
-<meta name="twitter:title" content="yfs实现第三步——锁缓存">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/">
+<meta property="og:title" content="yfs实现第二步——实现基本文件服务">
+<meta name="twitter:title" content="yfs实现第二步——实现基本文件服务">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+<meta property="og:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
 ">
-<meta name="twitter:description" content="yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+<meta name="twitter:description" content="yfs是一个分布式文件系统，第一步先实现一个锁服务
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-12-05T00:00:00">
+    <meta property="article:published_time" content="2018-12-02T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-12-05T00:00:00">
+    <meta property="article:modified_time" content="2018-12-02T00:00:00">
   
   
   
@@ -57,14 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>yfs实现第三步——锁缓存</title>
+    <title>yfs实现第二步——实现基本文件服务</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -190,15 +190,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      yfs实现第三步——锁缓存
+      yfs实现第二步——实现基本文件服务
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-12-05T00:00:00Z">
+      <time itemprop="datePublished" datetime="2018-12-02T00:00:00Z">
         
-  December 5, 2018
+  December 2, 2018
 
       </time>
     
@@ -209,77 +209,195 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+              <p>yfs是一个分布式文件系统，第一步先实现一个锁服务
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>这次实验实现在锁客户端缓存锁,减轻锁服务器的负载.</p>
+<p>YFS的架构：
+<img src="https://img-blog.csdnimg.cn/20181129194609433.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="在这里插入图片描述" /></p>
 
-<p>例如应用使用YFS在同一目录下连续创建100个文件,按照LAB 3 的实现,需要<code>acquire</code>100次目录锁,同样也需要<code>release</code>100次. 这种方式增加了锁服务器的负载,其实只需要<code>acquire</code>一次锁,然后缓存锁,最后使用完后再释放就可以了,这样之前的100次<code>acquire</code>和100次<code>release</code>只需要1次<code>acquire</code>和1次<code>release</code>.</p>
+<p>YFS模块实现核心文件系统逻辑，这个模块作为<code>yfs_client</code>的单个进程运行，该进程支持本地主机上的挂载点，该模块有两部分组成：
+1. FUSE接口：在<code>fuse.cc</code>中，它将FUSE操作从FUSE内核模块转换为YES客户端调用。
+2. YES客户端：<code>yfs_client.{cc,h}，YES实现客户端文件系统逻辑，使用锁和扩展服务器来帮助它。
+例如，在创建新文件时，</code>yfs_client`会将目录条目添加到扩展服务器的目录块中。</p>
 
-<p>本次实验实现<code>acquire</code>锁后在锁客户端缓存锁, 当有其他客户端需要该锁时再释放该锁.</p>
+<p>扩展服务器存储文件系统所有的数据，类似于不同文件系统的硬盘。在将来的实验中，可以在多个主机上运行YES客户端，所有主机都与同一个扩展服务器通信；
+效果就是所有主都能看到并共享同一个文件系统。
+多个YES客户端可以共享数据的唯一方法就是通过扩展服务器。
+扩展服务器由两部分构成：
+1. <code>extent_client</code>，使用RPC与extent server进行通信的包装类
+2. <code>extent_server</code>，扩展服务器管理一个简单的键值存储，以<code>extent_protocol::extentid_t</code>为键，以<code>string</code>以及对应的属性为值。</p>
 
-<h2 id="设计协议">设计协议</h2>
+<h2 id="part1-create-mknod-lookup-and-readdir">Part1：CREATE/MKNOD, LOOKUP, and READDIR</h2>
+
+<h2 id="part2-setattr-read-write">Part2：SETATTR,READ,WRITE</h2>
+
+<p>这两个部分完成的代码是类似的，只是实现的功能不同。</p>
 
 <ol>
-<li><p>每个客户端可能有多个线程获取同一个锁,但是每一个客户端只允许一个线程(并不要求是哪个特定的线程,而是不允许多个线程与锁服务器交互)与锁服务器进行交互, 一旦一个线程已经获取到锁,然后释放锁就可以唤醒同一客户端在等待的其他线程</p></li>
-
-<li><p>当一个客户端使用<code>acquire</code>RPC请求一个锁,如果锁没有被其他的客户端获取(FREE),那么锁服务器返回OK, 如果锁不是FREE,并且有其他的客户端等待这个锁,那么返回一个ENTRY. 如果锁不是FREE,并且没有其他客户端等待这个锁,那么锁服务器<code>revoke</code> RPC到锁的拥有者,等待锁的拥有者释放这个锁,最终锁服务器发送一个<code>retry</code> RPC给等待该锁的下一个客户端,通知它再次尝试获取.</p></li>
-
-<li><p>一旦一个客户端拥有了一个锁,那么客户端缓存这个锁(即当释放这个锁时并不发送一个release RPC给锁服务器). 客户端可以将锁给同一个客户端的其他线程而且不需要与服务器交互.</p></li>
-
-<li><p>锁服务器通过发送一个<code>revoke</code> RPC给客户端来收回客户端缓存的锁,这个<code>revoke</code>请求告诉客户端当<code>release</code>锁时立即将锁返回给服务器,或者如果没有线程当前持有这个锁,那么就立即将锁返回给锁服务器.</p></li>
-
-<li><p>锁服务器应该记录每个锁的持有者ID(hostname:port),这样锁服务器才知道<code>revoke</code> RPC发送给哪个客户端. 另外还需要记录哪些客户端在等待这个锁,这样锁服务器可以向其中一个发送retry RPC.</p></li>
-
-<li><p>当发送一个RPC时不要持有任何mutex, RPC通常需要较长的时间,这会让其他的线程一直等待,另为在RPC时持有mutex容易导致分布式锁死.</p></li>
+<li>首先完成<code>extent_server.{h,cc}</code>，这个服务器要实现一个简单的键值对存储，能实现<code>put</code>、<code>get</code>、<code>getattr</code>、<code>remove</code>的功能。这些方法会在之后实现<code>yfs_client</code>时用到，例如要创建一个文件，则需要<code>get</code>一个目录，然后<code>put</code>创建一个文件，最后<code>put</code>将创建的文件放入该目录。</li>
+<li>接着实现<code>yfs_client.{h,cc}</code>，要能实现上面标题所显示的六种方法，最重要的是能理解<code>inum</code>是什么及有什么用，每个文件或者目录都有唯一的inum，因此还要实现一个产生唯一的<code>inum</code>的函数。</li>
+<li>最后就是实现<code>fuse.cc</code>了，参考注释很快就能完成了，这里会调用到上一步骤实现的函数。</li>
 </ol>
 
-<h3 id="锁客户端协议处理">锁客户端协议处理</h3>
+<h2 id="调试">调试</h2>
 
-<p>锁客户端中缓存的锁有下面5个状态:</p>
+<h3 id="create错误">create错误</h3>
 
-<ul>
-<li>NONE: 客户端不知道该锁的任何信息,该锁可能还在服务器上,或者被别的客户端持有.</li>
-<li>FREE:当前客户端拥有这个锁,并且在这个客户端上没有线程持有这个锁.</li>
-<li>LOCKED: 当前客户端拥有这个锁,并且锁被某个线程持有.</li>
-<li>ACQUIRGING: 当前客户端有线程正在向服务器尝试获取这个锁.</li>
-<li>RELEASING 当前客户端正在尝试将锁返回给服务器.</li>
-</ul>
+<pre><code class="language-shell">test-lab-2-a: cannot create ./yfs1/file-yxfsroxwdfzzniqgxqzgxjpyxtwdievwhenavyda-24012-0 : No such file or directory
+</code></pre>
 
-<h3 id="锁服务器端协议处理">锁服务器端协议处理</h3>
+<p>第一次create就失败了，检查一下有关create的代码，没发现有什么问题。回去再看一遍实验指导，发现有这样一句话：</p>
 
-<p>锁服务器端的锁有下面四个状态:</p>
+<pre><code>FUSE假定根目录的inum是0x00000001。因此，您需要确保在yfs_client启动时，它已准备好导出存储在该inum下的空目录。
+</code></pre>
 
-<ul>
-<li>FREE: 该锁未被任何客户端持有</li>
-<li>LOCKED: 锁被某个客户端持有,没有其他客户端等待该锁</li>
-<li>LOCKED_AND_WAIT: 锁被某个客户端持有,并且有其他客户端等待该锁</li>
-<li>RETRYING: 锁服务器正在向某个客户端发送retry RPC.</li>
-</ul>
+<p>因此要在<code>extent_server</code>的构造函数中加上两行：</p>
+
+<pre><code class="language-cpp">  int ret;
+  put(1, &quot;&quot;, ret);
+</code></pre>
+
+<h3 id="open错误">open错误</h3>
+
+<pre><code class="language-shell">test-lab-2-a: cannot open ./yfs1/file-nmhxcnnviodnsyfqcasqiorffhpoxtetbrhanteo-30075-198 : No such file or directory
+</code></pre>
+
+<p>经检查，发现了一个错误，在创建文件时，只是创建了文件，但并没有与目录绑定。
+在第二个调用<code>put</code>中要是传入参数的目录的<code>inum</code>。</p>
+
+<pre><code class="language-cpp">int
+yfs_client::create(inum parent, const char* name, inum&amp; inum)
+{
+  std::string data;
+  std::string file_name;
+  if(ec-&gt;get(parent, data) != extent_protocol::OK)
+  {
+    return IOERR;
+  }
+
+  file_name = &quot;/&quot; + std::string(name) + &quot;/&quot;;
+  // 文件已经存在
+  if (data.find(file_name) != std::string::npos)
+  {
+    return EXIST;
+  }
+
+  inum = random_inum(true);
+  if(ec-&gt;put(inum, std::string()) != extent_protocol::OK)
+  {
+    return IOERR;
+  }
+
+  data.append(file_name + filename(inum) + &quot;/&quot;);
+  if(ec-&gt;put(parent, data) != extent_protocol::OK)
+  {
+    return IOERR;
+  }
+
+  return OK;
+}
+</code></pre>
 
 <h2 id="测试">测试</h2>
 
-<p>其中一个终端：</p>
-
-<pre><code class="language-shell">$ export RPC_LOSSY=0
-$ ./lock_server 3772
-</code></pre>
-
-<p>另一个终端：</p>
-
-<pre><code class="language-shell">$ ./lock_tester 3772
-cache lock client
-acquire a release a acquire a release a
+<pre><code class="language-shell">$ ./start.sh 
+starting ./lock_server 29818 &gt; lock_server.log 2&gt;&amp;1 &amp;
+starting ./extent_server 29812 &gt; extent_server.log 2&gt;&amp;1 &amp;
+starting ./yfs_client /home/liu/Desktop/yfsCpp11/lab2/yfs1 29812 29818 &gt; yfs_client1.log 2&gt;&amp;1 &amp;
+starting ./yfs_client /home/liu/Desktop/yfsCpp11/lab2/yfs2 29812 29818 &gt; yfs_client2.log 2&gt;&amp;1 &amp;
+$ ./test-lab-2-a.pl ./yfs1 
+create file-cmrivvpetwwtwdazsapiphcemhnfinxrgdzxgqvi-13540-0
+create file-wybthquccdqwjexfmngiseabesctrnoyyxtvpbta-13540-1
+create file-ncrjwuoozrtdgggmqlxgmwuzpctamfvhhuasvdkr-13540-2
 ...
 ...
-./lock_tester: passed all tests successfully
+Passed all tests!
+$ ./test-lab-2-b.pl ./yfs1 ./yfs2
+Write and read one file: OK
+Write and read a second file: OK
+Overwrite an existing file: OK
+Append to an existing file: OK
+Write into the middle of an existing file: OK
+Write beyond the end of an existing file: OK
+Check that one cannot open non-existant file: OK
+Check directory listing: OK
+Read files via second server: OK
+Check directory listing on second server: OK
+Passed all tests
 </code></pre>
 
-<p>开启RPC丢失后重复上面的测试：</p>
+<h2 id="part3-mkdir-unlink">Part3：MKDIR, UNLINK</h2>
 
-<pre><code class="language-shell">export RPC_LOSSY = 5 
+<p>这一部分与上一次实验完成的内容差不多，有了前面的理解，这一部分很简单。</p>
+
+<h2 id="part4-locking">Part4：Locking</h2>
+
+<p>最简单的方法就是为整个文件系统提供单个锁，或是锁定整个目录，但这些都不好。</p>
+
+<p>锁应该与每个内容相关联，使用文件或目录的<code>inum</code>作为锁的名称，利用之前在<code>lock_client</code>的实现，每个<code>yfs_client</code>都有一个<code>lock_client</code>。</p>
+
+<pre><code class="language-cpp">class yfs_client {
+  extent_client *ec;
+  lock_client *m_lc;
+public:
+  ...
+</code></pre>
+
+<p>而在CREATE等方法中如果直接使用<code>m_lc</code>的话会比较繁杂，可以自己实现一个锁类，采用RAII(资源获取即初始化)，
+类似于标准库中的<code>lock_guard</code>。</p>
+
+<pre><code class="language-cpp">class LockGuard {
+public:
+  LockGuard(lock_client *lc, lock_protocol::lockid_t lid) : m_lc(lc), m_lid(lid)
+  {
+    m_lc-&gt;acquire(m_lid);
+  }
+
+  ~LockGuard()
+  {
+    m_lc-&gt;release(m_lid);
+  }
+private:
+  lock_client *m_lc;
+  lock_protocol::lockid_t m_lid;
+};
+</code></pre>
+
+<h2 id="测试-1">测试</h2>
+
+<h3 id="part1">Part1</h3>
+
+<pre><code class="language-shell">$ ./test-lab-3-a.pl ./yfs1
+mkdir ./yfs1/d14527
+create x-0
+delete x-0
+create x-1
+checkmtime x-1
+checkdirmtime
+...
+...
+Passed all tests!
+</code></pre>
+
+<h3 id="part2">Part2</h3>
+
+<pre><code class="language-shell">$ ./test-lab-3-b ./yfs1 ./yfs2
+Create then read: OK
+Unlink: OK
+Append: OK
+Readdir: OK
+Many sequential creates: OK
+Write 20000 bytes: OK
+Concurrent creates: OK
+Concurrent creates of the same file: OK
+Concurrent create/delete: OK
+Concurrent creates, same file, same server: OK
+Concurrent writes to different parts of same file: OK
+test-lab-3-b: Passed all tests.
+$ ./test-lab-3-c ./yfs1 ./yfs2
+Create/delete in separate directories: tests completed OK
 </code></pre>
               
             </div>
@@ -305,7 +423,7 @@ acquire a release a acquire a release a
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%9B%9B%E6%AD%A5%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第四步——文件服务缓存">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第三步——锁缓存">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -313,7 +431,7 @@ acquire a release a acquire a release a
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第二步——实现基本文件服务">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -373,7 +491,7 @@ acquire a release a acquire a release a
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%9B%9B%E6%AD%A5%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第四步——文件服务缓存">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/" data-tooltip="yfs实现第三步——锁缓存">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -381,7 +499,7 @@ acquire a release a acquire a release a
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第二步——实现基本文件服务">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/" data-tooltip="yfs实现第一步——锁服务">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -715,9 +833,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/12\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/12\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1\/';
           
-            this.page.identifier = '\/2018\/12\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98\/'
+            this.page.identifier = '\/2018\/12\/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1\/'
           
         };
         (function() {
