@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="liu jianhao">
+<meta name="keywords" content="">
+<meta name="description" content="LevelDB的put操作
+">
+
+
+<meta property="og:description" content="LevelDB的put操作
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LevelDB源码解析2——put">
+<meta name="twitter:title" content="LevelDB源码解析2——put">
+<meta property="og:url" content="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put/">
+<meta property="og:site_name" content="liu-jianhao&#39;s Blog">
+<meta property="og:description" content="LevelDB的put操作
+">
+<meta name="twitter:description" content="LevelDB的put操作
+">
+<meta property="og:locale" content="en-us">
+
+  
+    <meta property="article:published_time" content="2018-01-22T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2018-01-22T00:00:00">
+  
+  
+  
+  
+    
+      <meta property="article:tag" content="LevelDB">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+  <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+
+
+    <title>LevelDB源码解析2——put</title>
+
+    <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://liu-jianhao.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
+  </div>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://liu-jianhao.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+        </a>
+        <h4 class="sidebar-profile-name">liu jianhao</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/liu-jianhao" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      LevelDB源码解析2——put
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2018-01-22T00:00:00Z">
+        
+  January 22, 2018
+
+      </time>
+    
+    
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>LevelDB的put操作
+</p>
+
+<h1 id="leveldb源码分析2">leveldb源码分析2</h1>
+
+<p>在了解了<code>Open</code>操作后，接下来分析<code>Put</code>操作。</p>
+
+<h2 id="db-put-db-db-impl-cc-1487行">DB::Put(<code>db/db_impl.cc</code>1487行)</h2>
+
+<pre><code class="language-cpp">// Default implementations of convenience methods that subclasses of DB
+// can call if they wish
+Status DB::Put(const WriteOptions&amp; opt, const Slice&amp; key, const Slice&amp; value) {
+  WriteBatch batch;
+  batch.Put(key, value);
+  return Write(opt, &amp;batch);
+}
+</code></pre>
+
+<ul>
+<li><code>WriteBatch</code>(db/write_batch.cc)：对若干数目的key的write操作(put/delete)封装成<code>WriteBatch</code>。它会将<code>userkey</code>连同<code>SequenceNumber</code>(db/dbformat.h，leveldb中的每次更新put/delete操作都拥有一个版本，由<code>SequenceNumber</code>标识，真个db有一个全局值保存着当前用到的<code>SequenceNumber</code>)和<code>ValueType</code>先做encode，然后做decode，将数据insert到指定的Handler(memtable)上面。</li>
+</ul>
+
+<h3 id="writebatch-put">WriteBatch::Put</h3>
+
+<p>接着上面的<code>batch.Put(key, value);</code>，跳转到<code>write_batch.cc</code>102行：</p>
+
+<pre><code class="language-cpp">void WriteBatch::Put(const Slice&amp; key, const Slice&amp; value) {
+  WriteBatchInternal::SetCount(this, WriteBatchInternal::Count(this) + 1);
+  rep_.push_back(static_cast&lt;char&gt;(kTypeValue));
+  PutLengthPrefixedSlice(&amp;rep_, key);
+  PutLengthPrefixedSlice(&amp;rep_, value);
+}
+</code></pre>
+
+<p>这个函数主要就是将key-value封装WriteBatch</p>
+
+<h3 id="dbimpl-write-db-db-impl-cc-1204行">DBImpl::Write(<code>db/db_impl.cc</code>1204行)</h3>
+
+<p>由于代码太长就不贴上来了，简单描述一下流程：
+1. 循环检查当前 db 状态，确定策略(<code>DBImpl:: MakeRoomForWrite()</code>)：
+    + 如果当前<code>level-0</code>中的文件数目达到<code>kL0_SlowdownWritesTrigger</code>阈值，则sleep进行
+    delay。该delay只会发生一次。
+    + 如果当前<code>memtable</code>的<code>size</code>未达到阈值<code>write_buffer_size</code>，则允许这次写。
+    + 如果<code>memtable</code>已经达到阈值，但<code>immutable memtable</code>仍存在，则等待<code>compact</code>将其dump完成。
+    + 如果 level-0 中的文件数目达到 kL0_StopWritesTrigger 阈值，则等待<code>compact memtable</code>完成
+    + 上述条件都不满足，则是 memtable 已经写满，并且 immutable memtable 不存在，则将当前
+    memtable 置为 immutable memtable，生成新的 memtable 和 log file，主动触发 compact，允许该次写。
+2. 设置<code>WriteBatch</code>的<code>SequnceNumber</code>。
+3. 先将<code>WriteBatch</code>中的数据记 log(<code>Log::AddRecord()</code>)。
+4. 将<code>WriteBatch</code>应用在<code>memtable</code>上。（<code>WriteBatchInternal::InsertInto()</code>） ,即遍历decode出
+    <code>WriteBatch</code>中的<code>key/value/ValueType</code>，根据<code>ValueType</code>对<code>memetable</code>进行put/delete操作。
+5. 更新<code>SequnceNumber（</code>last_sequnce + WriteBatch::count()`）。</p>
+
+<h2 id="总结">总结</h2>
+
+<p>完成<code>Put</code>操作包括两个步骤：首先是将这条KV记录以顺序写的方式追加到log文件末尾，尽管是一个磁盘读写操作，
+但是文件的顺序追加写入效是很高的，因此不会导致写入速度降低；第二个步骤是如果写入log文件成功，那么将这条KV记录
+插入内存的<code>memtable</code>中。</p>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">TAGGED IN</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/leveldb/">LevelDB</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903get/" data-tooltip="LevelDB源码解析3——get">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901open/" data-tooltip="LevelDB源码解析1——open">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 liu jianhao. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903get/" data-tooltip="LevelDB源码解析3——get">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901open/" data-tooltip="LevelDB源码解析1——open">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+    
+    <h4 id="about-card-name">liu jianhao</h4>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Your job title
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        Shenzhen
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="Search" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center">no post found</div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%85%AD%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA/">
+                <h3 class="media-heading">yfs实现第六步——实现复制状态机</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第六步实现复制状态机，增加系统容错性
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%94%E6%AD%A5paxos/">
+                <h3 class="media-heading">yfs实现第五步——Paxos</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第五步实现分布式一致性算法Paxos
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%9B%9B%E6%AD%A5%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1%E7%BC%93%E5%AD%98/">
+                <h3 class="media-heading">yfs实现第四步——文件服务缓存</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第四步在第二步的基础上实现文件服务的缓存
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%89%E6%AD%A5%E9%94%81%E7%BC%93%E5%AD%98/">
+                <h3 class="media-heading">yfs实现第三步——锁缓存</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第三步在第一步的基础上改进，让锁服务支持缓存
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%8C%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%9F%BA%E6%9C%AC%E6%96%87%E4%BB%B6%E6%9C%8D%E5%8A%A1/">
+                <h3 class="media-heading">yfs实现第二步——实现基本文件服务</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第一步先实现一个锁服务
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%B8%80%E6%AD%A5%E9%94%81%E6%9C%8D%E5%8A%A1/">
+                <h3 class="media-heading">yfs实现第一步——锁服务</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第一步先实现一个锁服务
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E4%B9%8Bpaxos/">
+                <h3 class="media-heading">MIT6.824分布式系统之Paxos</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>分布式一致性算法Paxos的实现
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8Bkv-raft/">
+                <h3 class="media-heading">MIT6.824分布式系统实验三之KV-Raft</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>基于Raft算法的具有容错性的键值数据库的实现
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/11/mit6.824%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Braft/">
+                <h3 class="media-heading">MIT6.824分布式系统实验二之Raft</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Nov 11, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>分布式一致性算法Raft的实现
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E6%80%BB%E7%BB%93/">
+                <h3 class="media-heading">CMU数据库系统总结</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Oct 10, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>CMU-15-445 数据库系统总结
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero="no post found"
+         data-message-one="1 post found"
+         data-message-other="{n} posts found">
+         26 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://liu-jianhao.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://liu-jianhao.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/01\/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put\/';
+          
+            this.page.identifier = '\/2018\/01\/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'hugo-tranquilpeak-theme';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
