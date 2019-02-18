@@ -8,37 +8,35 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta name="description" content="LevelDB总体概述
 ">
 
 
-<meta property="og:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta property="og:description" content="LevelDB总体概述
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="CMU数据库系统实验三之并发控制">
-<meta name="twitter:title" content="CMU数据库系统实验三之并发控制">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+<meta property="og:title" content="LevelDB源码解析0——准备">
+<meta name="twitter:title" content="LevelDB源码解析0——准备">
+<meta property="og:url" content="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta property="og:description" content="LevelDB总体概述
 ">
-<meta name="twitter:description" content="CMU-15-445 数据库系统实验三并发控制的实现
+<meta name="twitter:description" content="LevelDB总体概述
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-10-25T00:00:00">
+    <meta property="article:published_time" content="2019-01-18T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-10-25T00:00:00">
+    <meta property="article:modified_time" content="2019-01-18T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="CMU-15-445">
-    
-      <meta property="article:tag" content="数据库">
+      <meta property="article:tag" content="LevelDB">
     
   
 
@@ -59,14 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>CMU数据库系统实验三之并发控制</title>
+    <title>LevelDB源码解析0——准备</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -192,15 +190,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      CMU数据库系统实验三之并发控制
+      LevelDB源码解析0——准备
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-10-25T00:00:00Z">
+      <time itemprop="datePublished" datetime="2019-01-18T00:00:00Z">
         
-  October 25, 2018
+  January 18, 2019
 
       </time>
     
@@ -211,234 +209,15 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>CMU-15-445 数据库系统实验三并发控制的实现
+              <p>LevelDB总体概述
 </p>
 
-<h1 id="前言">前言</h1>
+<h1 id="leveldb源码分析0">LevelDB源码分析0_</h1>
 
-<p>足足花了整整十天，终于这个课程最难的一个实验完成了，多线程果然是一个令人头疼的问题。</p>
+<p>期末考之后开始阅读<code>leveldb</code>的源代码，在阅读之前最后要先阅读<code>BigTable</code>的那篇论文，
+<code>leveldb</code>可以说是论文的实现，还需要了解<code>SSTable</code>、<code>LSM Tree</code>、<code>Skip List</code>等一些基本概念。</p>
 
-<p>下面就总结一下。</p>
-
-<h1 id="并发控制">并发控制</h1>
-
-<h2 id="任务一-lock-manager">任务一：Lock Manager</h2>
-
-<p>为了确保正确交叉事务的操作，DBMS将使用锁管理器（LM）来控制何时允许事务访问数据项。</p>
-
-<p>LM的基本思想是它维护一个关于活动事务当前持有的锁的内部数据结构。</p>
-
-<p>然后，事务在允许访问数据项之前向LM发出锁定请求。LM将授予对调用事务的锁定，阻止该事务或中止它。</p>
-
-<p>此任务要求您实现支持两阶段锁定（2PL）和严格两阶段锁定（S2PL）的元组级LM 。</p>
-
-<h2 id="知识笔记">知识笔记</h2>
-
-<h3 id="two-phase-locking-2pl">Two-phase locking - 2PL</h3>
-
-<p>简单来说就是，一个事务分为两个阶段，上升阶段(获取锁)和下降阶段(释放锁)，在上升阶段不能释放锁，在下降阶段不能获得锁。</p>
-
-<p>这样就保证了冲突可串行化，但是不能保证不会发生死锁，所以我门采用下面的方法来预防死锁。</p>
-
-<h3 id="strict-two-phase-locking-s2pl">Strict Two-phase locking - S2PL</h3>
-
-<p>在2PL的基础上，还要求事务持有的所有排他锁必须在事务提交后方可释放。</p>
-
-<p>这个要求保证未提交事务所写的任何数据在该事务提交之前均以排它锁方式加锁，防止其他事务读这些数据。</p>
-
-<h3 id="wait-die">wait-die</h3>
-
-<p>Lock Manager 将实施WAIT-DIE策略以预防死锁
-+ 该方案是基于非剥夺方法。当进程Pi请求的资源正被进程Pj占有时，只有当Pi的时间戳比进程Pj的时间戳小时，
-即Pi比Pj老时，Pi才能等待。否则Pi被卷回（roll-back），即死亡。
-+ 一个进程死亡后会释放他所占用的所有资源。在这里假定死亡的进程将带着同样的时间戳重新运行。
-+ 由于具有较小时间戳的进程才等待具有较大时间戳的进程，因此很显然死锁不会发生。当进程在等待特定的资源时，不会释放资源。
-+ 一旦一个进程释放一个资源，与这个资源相联系的等待队列中的一个进程将被激活。</p>
-
-<h3 id="lock-manager">Lock Manager</h3>
-
-<p>锁管理器可以实现为一个过程，它从事务接受消息并反馈消息。锁管理器过程针对锁请求消息返回授予锁消息，或者要求事务回滚的消息。
-解锁消息只需要得到一个确认回答，但可能引发为其他等待事务的授予锁消息。</p>
-
-<p>锁管理器为目前已加锁的每个数据项维护一个链表，每一个请求为链表中一条记录，按请求到达的顺序排序。</p>
-
-<p>它使用一个以数据项名称为索引的散列表来查找链表中的数据项，叫锁表。</p>
-
-<p><img src="https://github.com/liu-jianhao/CMU-15-445/blob/master/Lab3-Concurrency-Control/%E9%94%81%E8%A1%A8.png" alt="" /></p>
-
-<p>上图包含五个不同数据项的锁。已授予锁的事务用深色阴影方块表示，等待授予锁的事务用浅色方块。</p>
-
-<p>除了图上看到的，锁表还应当维护一个基于事务表示符的索引，这样它可以有效地确定给定事务持有的锁集。</p>
-
-<p>锁管理器处理请求：
-+ 当一条请求消息到达时，如果相应数据项的链表存在，在该链表末尾增加一个记录；否则，新建一个包含该请求记录的链表。
-+ 收到一个事务的解锁消息是，它将与该事务相对应的数据项链表中的记录删除，然后检查随后的记录，如果有，检查该请求能否被授权
-+ 如果一个事务中止，锁管理器删除该事务产生的正在等待加锁的所有请求。
-这个算法保证了锁请求无饿死现象，因为在先前接受到的请求正在等待加锁时，后来者不可能获得授权。</p>
-
-<h2 id="任务一调试">任务一调试</h2>
-
-<p>任务一还算比较简单，主要先将锁表的数据结构想好，之后的操作基本上就水到渠成了，但毕竟是多线程的并发，难免会有问题。</p>
-
-<pre><code>$ test/lock_manager_test
-Running main() from gmock_main.cc
-[==========] Running 9 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 9 tests from LockManagerTest
-[ RUN      ] LockManagerTest.BasicTest
-[       OK ] LockManagerTest.BasicTest (1 ms)
-[ RUN      ] LockManagerTest.BasicShareTest
-[       OK ] LockManagerTest.BasicShareTest (100 ms)
-[ RUN      ] LockManagerTest.BasicExclusiveTest
-[       OK ] LockManagerTest.BasicExclusiveTest (101 ms)
-[ RUN      ] LockManagerTest.BasicUpdateTest
-^C
-</code></pre>
-
-<p>能通过三个测试，但是最后一样还是卡住了。</p>
-
-<p>找了快一个小时，终于找到了：</p>
-
-<pre><code class="language-cpp">if(it == lock_table_[rid].list.begin() || it-&gt;mode == LockMode::EXCLUSIVE)
-{
-  cond.notify_all();
-}
-
-lock_table_[rid].list.erase(it);
-</code></pre>
-
-<p>这个是改过之后的，之前错误的代码是将erase语句写在了其上面的if语句之前，因为erase会让迭代器失效，所以后面的操作肯定就是错误的了。</p>
-
-<p>然后就通过测试了：</p>
-
-<pre><code>[==========] Running 9 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 9 tests from LockManagerTest
-[ RUN      ] LockManagerTest.BasicTest
-[       OK ] LockManagerTest.BasicTest (0 ms)
-[ RUN      ] LockManagerTest.BasicShareTest
-[       OK ] LockManagerTest.BasicShareTest (101 ms)
-[ RUN      ] LockManagerTest.BasicExclusiveTest
-[       OK ] LockManagerTest.BasicExclusiveTest (100 ms)
-[ RUN      ] LockManagerTest.BasicUpdateTest
-[       OK ] LockManagerTest.BasicUpdateTest (101 ms)
-[ RUN      ] LockManagerTest.BasicTest1
-[       OK ] LockManagerTest.BasicTest1 (100 ms)
-[ RUN      ] LockManagerTest.BasicTest2
-[       OK ] LockManagerTest.BasicTest2 (200 ms)
-[ RUN      ] LockManagerTest.DeadlockTest1
-[       OK ] LockManagerTest.DeadlockTest1 (0 ms)
-[ RUN      ] LockManagerTest.DeadlockTest2
-[       OK ] LockManagerTest.DeadlockTest2 (1 ms)
-[ RUN      ] LockManagerTest.DeadlockTest3
-[       OK ] LockManagerTest.DeadlockTest3 (500 ms)
-[----------] 9 tests from LockManagerTest (1104 ms total)
-
-[----------] Global test environment tear-down
-[==========] 9 tests from 1 test case ran. (1104 ms total)
-[  PASSED  ] 9 tests.
-</code></pre>
-
-<h2 id="任务二-并发索引">任务二：并发索引</h2>
-
-<h3 id="提示">提示</h3>
-
-<ul>
-<li>不能使用全局范围锁存器来保护你的数据结构，也就是说，无法锁定整个索引，只能在操作完成时解锁锁存器。</li>
-<li>提供了读写锁存器的实现<code>src/include/common/rwmutex.h</code>。并且已经在文件下添加了辅助函数来获取和释放<code>latch</code>(<code>src/include/page / page.h</code>)</li>
-<li>必须使用名为<code>transaction</code>的传入指针参数。它提供了在遍历B +树时存储已获取锁存页面的方法，以及存储在<code>Remove</code>操作期间删除的页面的方法。我们的建议是仔细查看<code>FindLeafPage()</code>B+树中的方法，你可能想改变以前的实现并在这个特定方法中添加<code>latch crabbing</code>的逻辑。
-+　缓冲池管理器中<code>FetchPage</code>的返回值是一个指向<code>Page</code>的实例<code>src/include/page/page.h</code>的指针。你可以获得一个Page的锁，但你不能获得B+Tree节点上的锁（既不是内部节点也不是叶子节点）</li>
-</ul>
-
-<h3 id="常见的问题">常见的问题</h3>
-
-<ul>
-<li>仔细考虑<code>UnpinPage(page_id, is_dirty)</code>缓冲池管理器类中的<code>UnLock()</code>方法与页面类中的方法之间的顺序和关系。在从缓冲池取消固定同一页面之前，必须释放该页面上的锁存器。</li>
-<li>如果你正确地实现并发B+树索引，那么每个线程将始终从根到底获取锁存器。释放闩锁时，请确保遵循相同的顺序（也称为从根到下）以避免可能的死锁情况。</li>
-<li>其中一个例子是插入和删除时，成员变量<code>root_page_id（src/include/index/b_plus_tree.h）</code>也将被更新。您有责任防止此共享变量的并发更新（提示：在B +树索引中添加一个抽象层，您可以使用std::mutex来保护此变量）</li>
-</ul>
-
-<h2 id="任务二调试">任务二调试</h2>
-
-<p>前面两次实验都需要花很多时间来调试，这次也不例外。。。</p>
-
-<pre><code class="language-shell">$ test/b_plus_tree_concurrent_test 
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[1]    1189 segmentation fault  test/b_plus_tree_concurrent_test
-</code></pre>
-
-<p>用<code>valgrand</code>检查得到下面结果(部分)：</p>
-
-<pre><code>==25834==    at 0x4F47E4A: cmudb::BPlusTreeInternalPage&lt;cmudb::GenericKey&lt;8ul&gt;, int, cmudb::GenericComparator&lt;8ul&gt; &gt;::Lookup(cmudb::GenericKey&lt;8ul&gt; const&amp;, cmudb::GenericComparator&lt;8ul&gt; const&amp;) const (in /home/liu/Desktop/CMU/CMU-15-445/Lab/build/lib/libvtable.so)
-</code></pre>
-
-<p>可以看到是在之前内部节点页面中的<code>Lookup</code>函数出了问题</p>
-
-<p>检查一遍<code>Lookup</code>函数，猜测应该是没有处理边界条件，加上之后，再次编译运行</p>
-
-<pre><code class="language-shell">$ test/b_plus_tree_concurrent_test
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-b_plus_tree_concurrent_test: /home/liu/Desktop/CMU/CMU-15-445/Lab/src/index/b_plus_tree.cpp:670: cmudb::BPlusTreeLeafPage&lt;KeyType, ValueType, KeyComparator&gt;* cmudb::BPlusTree&lt;KeyType, ValueType, KeyComparator&gt;::FindLeafPage(const KeyType&amp;, bool, cmudb::Operation, cmudb::Transaction*) [with KeyType = cmudb::GenericKey&lt;8&gt;; ValueType = cmudb::RID; KeyComparator = cmudb::GenericComparator&lt;8&gt;]: Assertion `node-&gt;GetParentPageId() == parent_page_id' failed.
-</code></pre>
-
-<p>偶尔会出现上面的情况，或者直接卡死在第一个测试。重新检查实验二中写的代码，修修补补了一些代码。再次编译运行</p>
-
-<pre><code>$ test/b_plus_tree_concurrent_test 
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[       OK ] BPlusTreeConcurrentTest.InsertTest1 (5 ms)
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest2
-[       OK ] BPlusTreeConcurrentTest.InsertTest2 (2 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest1
-[1]    2207 segmentation fault  test/b_plus_tree_concurrent_test
-</code></pre>
-
-<p>现在只会出现上面的情况，直接崩溃。第三个测试是删除的测试，再去检查有关删除的函数。</p>
-
-<p>检查后发现<code>AdjustRoot</code>这个函数没有考虑删除完最后一个元素后的情况，补充之后，能通过全部测试了。</p>
-
-<pre><code>$ test/b_plus_tree_concurrent_test                                                                                                                1 ↵
-Running main() from gmock_main.cc
-[==========] Running 6 tests from 1 test case.
-[----------] Global test environment set-up.
-[----------] 6 tests from BPlusTreeConcurrentTest
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest1
-[       OK ] BPlusTreeConcurrentTest.InsertTest1 (3 ms)
-[ RUN      ] BPlusTreeConcurrentTest.InsertTest2
-[       OK ] BPlusTreeConcurrentTest.InsertTest2 (1 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest1
-[       OK ] BPlusTreeConcurrentTest.DeleteTest1 (0 ms)
-[ RUN      ] BPlusTreeConcurrentTest.DeleteTest2
-[       OK ] BPlusTreeConcurrentTest.DeleteTest2 (1 ms)
-[ RUN      ] BPlusTreeConcurrentTest.MixTest
-[       OK ] BPlusTreeConcurrentTest.MixTest (0 ms)
-[ RUN      ] BPlusTreeConcurrentTest.MixTest2
-[       OK ] BPlusTreeConcurrentTest.MixTest2 (4 ms)
-[----------] 6 tests from BPlusTreeConcurrentTest (9 ms total)
-
-[----------] Global test environment tear-down
-[==========] 6 tests from 1 test case ran. (9 ms total)
-[  PASSED  ] 6 tests.
-</code></pre>
-
-<h1 id="总结">总结</h1>
-
-<p>任务一算是比较简单的，只要理解锁管理器里的锁表的作用和采用适合的数据结构就不难。</p>
-
-<p>难的是第二个任务，要支持并发访问，就要推翻一些在实验二中的一些代码了，要脱胎换骨了。</p>
-
-<p>正是因为难实验才有意义，这样才能学到东西，还剩最后一个实验了：日志和恢复。</p>
+<p><a href="http://www.cnblogs.com/haippy/archive/2011/12/04/2276064.html">leveldb实现原理博客</a></p>
               
             </div>
           </div>
@@ -450,9 +229,7 @@ Running main() from gmock_main.cc
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/cmu-15-445/">CMU-15-445</a>
-
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/leveldb/">LevelDB</a>
 
                   </div>
                 
@@ -465,7 +242,7 @@ Running main() from gmock_main.cc
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/" data-tooltip="CMU数据库系统实验四之日志和恢复">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900.5%E4%BD%BF%E7%94%A8/" data-tooltip="LevelDB源码解析0.5——使用">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -473,7 +250,7 @@ Running main() from gmock_main.cc
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%85%AD%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA/" data-tooltip="yfs实现第六步——实现复制状态机">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -533,7 +310,7 @@ Running main() from gmock_main.cc
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E5%9B%9B%E4%B9%8B%E6%97%A5%E5%BF%97%E5%92%8C%E6%81%A2%E5%A4%8D/" data-tooltip="CMU数据库系统实验四之日志和恢复">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900.5%E4%BD%BF%E7%94%A8/" data-tooltip="LevelDB源码解析0.5——使用">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -541,7 +318,7 @@ Running main() from gmock_main.cc
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/10/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%BA%8C%E4%B9%8Bb-tree/" data-tooltip="CMU数据库系统实验二之B&#43;Tree">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%85%AD%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA/" data-tooltip="yfs实现第六步——实现复制状态机">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -875,9 +652,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/10\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2019\/01\/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87\/';
           
-            this.page.identifier = '\/2018\/10\/cmu%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B8%89%E4%B9%8B%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6\/'
+            this.page.identifier = '\/2019\/01\/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87\/'
           
         };
         (function() {
