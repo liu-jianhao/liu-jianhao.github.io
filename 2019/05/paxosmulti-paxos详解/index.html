@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
+<meta name="author" content="liu jianhao">
+<meta name="keywords" content="">
+<meta name="description" content="从 Basic Paxos 到 Multi-Paxos
+">
+
+
+<meta property="og:description" content="从 Basic Paxos 到 Multi-Paxos
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paxos、Multi-Paxos详解">
+<meta name="twitter:title" content="Paxos、Multi-Paxos详解">
+<meta property="og:url" content="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/">
+<meta property="og:site_name" content="liu-jianhao&#39;s Blog">
+<meta property="og:description" content="从 Basic Paxos 到 Multi-Paxos
+">
+<meta name="twitter:description" content="从 Basic Paxos 到 Multi-Paxos
+">
+<meta property="og:locale" content="en-us">
+
+  
+    <meta property="article:published_time" content="2019-05-19T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2019-05-19T00:00:00">
+  
+  
+  
+  
+    
+      <meta property="article:tag" content="Paxos">
+    
+      <meta property="article:tag" content="分布式系统">
+    
+  
+
+
+<meta name="twitter:card" content="summary">
+
+
+
+
+
+
+
+
+
+
+
+  <meta property="og:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+  <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
+
+
+    <title>Paxos、Multi-Paxos详解</title>
+
+    <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
+    
+
+    
+
+    <link rel="canonical" href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/">
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/jquery.fancybox.min.css" integrity="sha256-vuXZ9LGmmwtjqFX1F+EKin1ThZMub58gKULUyf0qECk=" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.4/helpers/jquery.fancybox-thumbs.min.css" integrity="sha256-SEa4XYAHihTcEP1f5gARTB2K26Uk8PsndQYHQC1f4jU=" crossorigin="anonymous" />
+    
+    
+    <link rel="stylesheet" href="https://liu-jianhao.github.io/css/style-nnm2spxvve8onlujjlegkkytaehyadd4ksxc1hyzzq9a2wvtrgbljqyulomn.min.css" />
+    
+    
+
+    
+      
+    
+    
+  </head>
+
+  <body>
+    <div id="blog">
+      <header id="header" data-behavior="4">
+  <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
+  <div class="header-title">
+    <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
+  </div>
+  
+</header>
+
+      <nav id="sidebar" data-behavior="4">
+  <div class="sidebar-container">
+    
+      <div class="sidebar-profile">
+        <a href="https://liu-jianhao.github.io/#about">
+          <img class="sidebar-profile-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+        </a>
+        <h4 class="sidebar-profile-name">liu jianhao</h4>
+        
+      </div>
+    
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-home"></i>
+      
+      <span class="sidebar-button-desc">Home</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/categories">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-bookmark"></i>
+      
+      <span class="sidebar-button-desc">Categories</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/tags">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-tags"></i>
+      
+      <span class="sidebar-button-desc">Tags</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/archives">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-archive"></i>
+      
+      <span class="sidebar-button-desc">Archives</span>
+    </a>
+  </li>
+
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://liu-jianhao.github.io/#about">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-question"></i>
+      
+      <span class="sidebar-button-desc">About</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+  <li class="sidebar-button">
+    
+      <a class="sidebar-button-link " href="https://github.com/liu-jianhao" target="_blank" rel="noopener">
+    
+      <i class="sidebar-button-icon fa fa-lg fa-github"></i>
+      
+      <span class="sidebar-button-desc">GitHub</span>
+    </a>
+  </li>
+
+
+    </ul>
+    <ul class="sidebar-buttons">
+      
+
+    </ul>
+  </div>
+</nav>
+
+      
+
+      <div id="main" data-behavior="4"
+        class="
+               hasCoverMetaIn
+               ">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
+          
+          
+            <div class="post-header main-content-wrap text-left">
+  
+    <h1 class="post-title" itemprop="headline">
+      Paxos、Multi-Paxos详解
+    </h1>
+  
+  
+  <div class="postShorten-meta post-meta">
+    
+      <time itemprop="datePublished" datetime="2019-05-19T00:00:00Z">
+        
+  May 19, 2019
+
+      </time>
+    
+    
+  </div>
+
+</div>
+          
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>从 Basic Paxos 到 Multi-Paxos
+</p>
+
+<h1 id="前言">前言</h1>
+
+<p>看<a href="https://www.bilibili.com/video/av36556594?from=search&amp;seid=15314801214271624197">Paxos视频</a>，很详细的了解了Paxos算法和Multi-Paxos的实现，这篇博客是学习笔记</p>
+
+<h2 id="目标-复制日志">目标：复制日志</h2>
+
+<p><img src="https://img-blog.csdnimg.cn/20190518193359501.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
++ 复制日志 =&gt; 复制状态机
+    + 所有服务器按照相同的顺序执行相同的命令
++ 一致性模型确保正确的日志复制
++ 只要大部分服务器是运行的系统就能工作
++ 失败的模型：失败-停止(非拜占庭)，延迟/丢失信息</p>
+
+<h2 id="basic-paxos">Basic Paxos</h2>
+
+<ul>
+<li>Proposers：
+
+<ul>
+<li>活动的：提出特定的值被选中</li>
+<li>处理客户请求</li>
+</ul></li>
+<li>Acceptors：
+
+<ul>
+<li>被动的：响应消息给proposers</li>
+<li>回应达成共识的投票</li>
+<li>保存选中的值</li>
+<li>想知道哪个值被选中</li>
+</ul></li>
+<li>每个服务器都包含proposer和acceptor</li>
+</ul>
+
+<h3 id="一个acceptor">一个Acceptor</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/20190518193426471.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
++ Q：如果acceptor挂掉了怎么办？
++ A：多个acceptors，选中被大多数acceptors的值</p>
+
+<h3 id="问题-平分投票">问题：平分投票</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/20190518193451161.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
++ Q：Acceptor只接受第一个到达的值？
++ A：如果同时提出提案，不会选中任何值，所以Acceptors必须可以选择多个不同的值</p>
+
+<h3 id="问题-选择冲突">问题：选择冲突</h3>
+
+<ul>
+<li>Q：Acceptor接受所有到达的值？</li>
+<li>A：可能会导致选择多个值(如下图中的S3)，所以一旦一个值被选中，以后的提案必须提出/选择一样的值(两阶段提交)
+<img src="https://img-blog.csdnimg.cn/20190518194809355.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
+
+<h3 id="仍然有选择冲突">仍然有选择冲突</h3>
+
+<p>下图的流程：
+1. s1看到此时其他服务器没有接受某个值，之后提出red值
+2. s5当时也看到此时没有其他服务器没有接受某个值，就提出blue值
+3. blue很快就被s3、s4、s5接受，而s3之后也会接受red值
+<img src="https://img-blog.csdnimg.cn/20190518194858922.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
++ s1的提案必须被终止(s3必须拒绝它)
++ 因此提案必须有序，拒绝旧的提案</p>
+
+<h3 id="提案值">提案值</h3>
+
+<ul>
+<li>每个提案有一个唯一的值
+
+<ul>
+<li>大的优先级高</li>
+<li>提案者必须选择一个比之前见过的还大的提案值</li>
+</ul></li>
+<li>一个简单的方法：
+
+<ul>
+<li>一个提案值包括 轮值+服务器ID</li>
+<li>每个服务器保存 maxRound</li>
+<li>为产生一个新的提案值：
+
+<ul>
+<li>递增 maxRound</li>
+<li>与服务器ID关联</li>
+</ul></li>
+<li>提案者必须将 maxRound 持久化到磁盘，防止提案值在机器宕机重启后重用</li>
+</ul></li>
+</ul>
+
+<h3 id="两阶段方法">两阶段方法</h3>
+
+<ul>
+<li>阶段一：Prepare RPCs
+
+<ul>
+<li>找到已经被选中的值</li>
+<li>阻止旧的提案</li>
+</ul></li>
+<li>阶段二：Accept RPCs
+
+<ul>
+<li>请求acceptors接受值</li>
+</ul></li>
+</ul>
+
+<h3 id="流程">流程</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/20190518215222453.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="例子">例子</h3>
+
+<p>在之后提出一个提案有三种可能：
+1. 之前的值已经被选中了
+    + 新的Proposer会发现它并使用它
+<img src="https://img-blog.csdnimg.cn/20190518215828101.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
+    + 先说明一下方框内写的是什么意思，P表示Prepare，A表示Accept，
+    3.1中的3表示 Round Number，1表示由s1提出，X为acceptedValue
+    + 可以看到之后的提案了解到X已经被选中，s3、s4、s5也会选中同样的值</p>
+
+<ol>
+<li><p>之前没有值被选中，但已经被接受</p>
+
+<ul>
+<li>新的Proposer会发现它并使用它</li>
+<li>与前一种情况类似
+<img src="https://img-blog.csdnimg.cn/20190518220442791.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul></li>
+
+<li><p>之前没有值被选中，也没看到值被接受</p>
+
+<ul>
+<li>后来的Proposer会使用自己的值</li>
+<li>旧的值会被拒绝
+<img src="https://img-blog.csdnimg.cn/20190518220851962.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul></li>
+</ol>
+
+<h3 id="活锁">活锁</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/2019051822145557.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="其它">其它</h3>
+
+<ul>
+<li>只有 proposer 知道哪个值被选中了，acceptor是不知道的</li>
+<li>如果其它服务器想知道，就必须运行paxos</li>
+</ul>
+
+<h2 id="multi-paxos">Multi-Paxos</h2>
+
+<ul>
+<li>用日志项将 Basic Paxos 分成每一轮
+
+<ul>
+<li>添加 index 参数到 Prepare 和 Accept
+<img src="https://img-blog.csdnimg.cn/20190519085213173.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul></li>
+</ul>
+
+<h3 id="概述">概述</h3>
+
+<ul>
+<li>怎么选择哪个日志项来存放给定的客户请求？</li>
+<li>性能优化：
+
+<ul>
+<li>使用 leader 减少 proposer 冲突</li>
+<li>消除大部分 Prepare 请求</li>
+</ul></li>
+<li>复制的完整型</li>
+<li>客户协议</li>
+<li>配置变更</li>
+</ul>
+
+<h3 id="选择日志项">选择日志项</h3>
+
+<ul>
+<li>当客户传来请求：
+
+<ul>
+<li>找到第一个没有被选中的日志项</li>
+<li>运行 Basic Paxos，在这个 index， propose 客户命令</li>
+<li>Prepare 返回 acceptedValue？
+
+<ul>
+<li>Yes，结束选中 acceptedValue</li>
+<li>No，选中客户命令</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<p><img src="https://img-blog.csdnimg.cn/2019051909092591.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<ul>
+<li><p>当接收到请求时，服务器 S1 上的记录可能处于不同的状态，服务器知道有些记录已经被选定（1-mov，2-add，6-ret），在后面我会介绍服务器是如何知道这些记录已经被选定的。服务器上也有一些其他的记录（3-cmp），但此时它还不知道这条记录已经被选定。在这个例子中，我们可以看到，实际上记录（3-cmp）已经被选定了，因为在服务器 S3 上也有相同的记录，只是 S1 和 S3 还不知道。还有空白记录（4-，5-）没有接受任何值，不过其他服务器上相应的记录可能已经有值了。</p></li>
+
+<li><p>当 jmp 请求到达 S1 后，它会找到第一个没有被选定的记录（3-cmp），然后它会试图让 jmp 作为该记录的选定值。为了让这个例子更具体一些，我们假设服务器 S3 已经下线。所以 Paxos 协议在服务器 S1 和 S2 上运行，服务器 S1 会尝试让记录 3 接受 jmp 值，它正好发现记录 3 内已经有值（3-cmp），这时它会结束选择并进行比较，S1 会向 S2 发送接受（3-cmp）的请求，S2 会接受 S1 上已经接受的 3-cmp 并完成选定。这时（3-cmp）变成粗体，不过还没能完成客户端的请求，所以我们返回到第一步，重新进行选择。找到当前还没有被选定的记录（这次是记录 4-），这时 S1 会发现 S2 相应记录上已经存在接受值（4-sub），所以它会再次放弃 jmp ，并将 sub 值作为它 4- 记录的选定值。所以此时 S1 会再次返回到第一步，重新进行选择，当前未被选定的记录是 5- ，这次它会成功的选定 5-jmp ，因为 S1 没有发现其他服务器上有接受值。</p></li>
+</ul>
+
+<p>注意事项：
++ 在这种方式下，单个服务器可以同时处理多个客户端请求，也就是说前一个客户端请求会找到记录 3- ，下一个客户端请求就会找到记录 4- ，只要我们为不同的请求使用不同的记录，它们都能以并行的方式独立运行。
++ 不过，当进入到状态机后，就必须以一定的顺序来执行命令，命令必须与它们在日志内的顺序一致，也就是说只有当记录 3- 完成执行后，才能执行记录 4- 。</p>
+
+<h3 id="提高效率">提高效率</h3>
+
+<ul>
+<li>Basic Paxos 是低效的
+
+<ol>
+<li>多个 proposers 冲突问题</li>
+<li>对于选中一个值需要两轮RPCs(Prepare、Accept)</li>
+</ol></li>
+<li>解决：
+
+<ol>
+<li>选一个 leader
+
+<ul>
+<li>在一个时刻，只有一个 Proposer</li>
+</ul></li>
+<li>消除大部分 Prepare RPCs
+
+<ul>
+<li>一轮 Prepare 完整的日志，而不是单条记录。</li>
+<li>一旦完成了 Prepare，它就可以通过 Accept 请求，同时创建多条记录。这样就不需要多次使用 Prepare 阶段。这样就能减少一半的 RPCs。</li>
+</ul></li>
+</ol></li>
+</ul>
+
+<h3 id="领导选举">领导选举</h3>
+
+<p>选举领导者的方式有很多，这里只介绍一种由 Leslie Lamport 建议的简单方式。
++ 让有 <strong>最高 ID</strong> 的服务器作为领导者
++ 可以通过每个服务器定期（每 T ms）向其他服务器 <strong>发送心跳消息</strong> 的方式来实现。这些消息包含发送服务器的 ID
++ 如果它们没有能收到某一具有高 ID 的服务器的心跳消息，这个间隔（通常是 2T ms）需要设置的足够长，让消息有足够的通信传递时间。所以，如果这些服务器没有能接收到高 ID 的服务器消息，然后它们会自己选举成为领导者。
++ 也就是说，首先它会从客户端接受到请求，其次在 Paxos 协议中，它会 <strong>同时扮演 proposer 和 acceptor</strong>
++ 如果机器能够接收到来自高 ID 的服务器的心跳消息，它就不会作为 leader，如果它接收到客户端的请求，那么它会 <strong>拒绝</strong> 这个请求，并告知客户端与 leader 进行通信。
++ 非 leader 服务器不会作为 proposer，<strong>只会作为 acceptor</strong>
++ 这个机制的优势在于，它不太可能出现两个 leader 同时工作的情况，即使这样，如果出现了两个 leader，Paxos 协议还是能正常工作，只是不是那么高效而已。
++ 应该注意的是，实际上大多数系统都不会采用这种选举方式，它们会采用基于 <strong>租约</strong> 的方式（lease based approach），这比上述介绍的机制要复杂的多，不过也有其优势。</p>
+
+<h3 id="减少-prepare-的-rpc-请求">减少 Prepare 的 RPC 请求</h3>
+
+<ul>
+<li>为什么需要 Prepare？
+
+<ul>
+<li>需要使用提议序号来 <strong>阻止</strong> 旧的提议</li>
+<li>使用 Prepare 阶段来检查已经被接受的值，这样就可以使用这些值来替代原本自己希望接受的值。</li>
+</ul></li>
+</ul>
+
+<ol>
+<li><p>第一个问题是阻止所有的提议，我们可以通过改变提议序号的含义来解决这个问题， <strong>将提议序号全局化，代表完整的日志</strong> ，而不是为每个日志记录都保留独立的提议序号。这么做要求我们在完成一轮准备请求后，当然我们知道这样做会锁住整个日志，所以后续的日志记录不需要其他的准备请求。</p></li>
+
+<li><p>第二个问题有点讨巧。因为在不同接受者的不同日志记录里有很多接受值，为了处理这些值，我们扩展了准备请求的返回信息。和之前一样，准备请求仍然返回  acceptor 所接受的最高 ID 的提议，它只对当前记录这么做，不过除了这个，  acceptor 会查看当前请求的后续日志记录，<strong>如果后续的日志里没有接受值</strong> ，它还会返回这些记录的标志位 <strong>noMoreAccepted</strong> 。</p></li>
+
+<li><p>使用了这种领导者选举的机制，领导者会达到一个状态，每个 acceptor 都返回 noMoreAccepted ，领导者知道所有它已接受的记录。所以一旦达到这个状态，对于单个 acceptor 我们不需要再向这些 acceptor 发送准备请求，因为它们已经知道了日志的状态。</p></li>
+
+<li><p>不仅如此，一旦从集群 <strong>大多数 acceptor 那获得 noMoreAccepted 返回值</strong> ，我们就 <strong>不需要发送准备的 RPC 请求</strong> 。也就是说，  leader 可以简单地发送 Accept 请求，只需要一轮的 RPC 请求。这个过程会一直执行下去，唯一能改变的就是有其他的服务器被选举成了  leader  ，当前  leader  的 Accept 请求会被拒绝，整个过程会重新开始。</p></li>
+</ol>
+
+<h3 id="复制的完整性">复制的完整性</h3>
+
+<ul>
+<li>之前的复制是不完整的
+
+<ul>
+<li>日志项只需要复制到大多数，我们需要复制到 <strong>全部</strong></li>
+<li>只有 proposer 知道某个日志项被选中了，我们需要所有服务器都知道哪些日志项被选中了</li>
+</ul></li>
+</ul>
+
+<p>解决办法：
+1. 在后台持续尝试 Accept RPCs 直到所有 acceptors 返回
+2. 追踪被选中的日志项
+    + 让acceptedProposal[i] = 无穷大，这样这个日志项就不可以被覆盖，也就是说被选中了
+    + 每个服务器还会保持一个 firstUnchosenIndex：表示未被标识选定的最小下标值
+3. proposer 告诉 acceptors 已经被选中的日志项
+    + Proposer 在 Accept RPCs 中包含它的 firstUnchosenIndex
+    + Acceptor 将选中第i个日志项，如果：
+        + i &lt; request.firstUnchosenIndex
+        + acceptedProposal[i] == request.proposal
+    + 结果：acceptors知道大多数被选中的日志项</p>
+
+<p><img src="https://img-blog.csdnimg.cn/2019051912223475.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<p>该 acceptor 在 accept 之前的第6个日志项的提议序号为 3.4 ，
+这时它收到一个提议序号也为 3.4 的 accepte 请求，并且 请求的 firstUnchosenIndex = 7，大于之前 3.4 所在的 6，所以将选中第6个日志项，同时该请求的 index = 8，将 3.4 的请求放到第8个日志项</p>
+
+<p>这个机制无法解决所有的问题。问题在于 acceptor 可能会接收到来自于不同   proposer 的某些日志记录，这里记录 4 可能来自于之前轮次的服务器 S5 ，不幸的是这种情况下， acceptor 是无法知道该记录是否已被选定。它也可能是一个已失效过时的值。</p>
+
+<p>我们知道它已经被 proposer 选定，但是它可能应该被另外一个值所取代。所以还需要多做一步。</p>
+
+<ol>
+<li>旧 leader 的日志项
+
+<ul>
+<li>Acceptor 返回它的 fristUnchosenIndex 在 Accept回答中</li>
+<li>如果 proposer 的 firstUnchosenIndex &gt; acceptor回答的 firstUnchosenIndex(说明 acceptor 中的某些状态不确定)，proposer就会在后台发送 <strong>Success RPC</strong></li>
+<li>Success(index, v):通知 acceptor 该日志项被选中了
+
+<ul>
+<li>acceptedValue[index] = v</li>
+<li>acceptedProposal[index] = 无穷大</li>
+<li>return firstUnchosenIndex</li>
+<li>如果需要(可能存在多个不确定的状态)，Proposer 发送额外的Success RPC</li>
+</ul></li>
+</ul></li>
+</ol>
+
+<h3 id="客户端协议">客户端协议</h3>
+
+<ul>
+<li>发送命令给 leader
+
+<ul>
+<li>如果不知道哪个是 leader，随便选择一个服务器</li>
+<li>如果该服务不是 leader，<strong>重定向</strong> 给 leader</li>
+</ul></li>
+<li>leader 直到日志项被选中并且被 leader 的状态机执行才回应客户</li>
+<li>如果请求超时(leader 挂了)
+
+<ul>
+<li>客户重新发送命令给其他服务器</li>
+<li>最终重定向给新 leader</li>
+<li>给新 leader 重试请求</li>
+</ul></li>
+</ul>
+
+<h4 id="问题">问题</h4>
+
+<ul>
+<li>如果 laeder 在执行完命令但在回应之前挂掉
+
+<ul>
+<li>该命令不能执行两次</li>
+</ul></li>
+
+<li><p>解决：客户端需要为每条命令提供一个 <strong>唯一的 id</strong></p>
+
+<ul>
+<li>服务器会将该 id 存入日志项中</li>
+<li>状态机会记录每个客户最近执行的命令，即 <strong>最高 id 序号</strong></li>
+<li>在执行命令之前，状态机会检查该命令如否被执行过，如果执行过：
+
+<ul>
+<li>忽略</li>
+<li>返回之前执行的结果</li>
+</ul></li>
+</ul></li>
+
+<li><p>结果：只要客户端不崩溃，就能获得 <strong>exactly once</strong> 的保证，每个客户端命令仅被集群执行一次。如果客户端出现崩溃，就处于 <strong>at most once</strong> 的情况，也就是说客户端的命令可能执行，也可能没有执行。但是如果客户端是活着的，这些命令只会执行一次</p></li>
+</ul>
+
+<h3 id="配置变更">配置变更</h3>
+
+<p>同一时刻不可以出现两个不重叠的多数派
+<img src="https://img-blog.csdnimg.cn/20190519131524470.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<p>解决办法：
++ Leslie Lamport 建议的 Paxos 配置变更方案是用 <strong>日志</strong> 来管理这些变更，当前的配置作为日志的一条记录存储，并与其他的日志记录一同被复制同步。
++ 所以下图中 1-C1、3-C2 表示两个配置信息，其他的用来存储普通的命令。这里有趣的是，配置所使用每条记录是由它的更早的记录所决定的。
++ 这里有一个系统参数 å 来决定这个更早是多早，假设 å 为 3，我们这里有两个配置相关的记录，C1 存于记录 1 中，C2 存于记录 3 中，这也意味着 C1 在 3 条记录内不会生效，也就是说，C1 从记录 4 开始才会生效。C2 从记录 6 开始才会生效。所以当我们选择记录 1、2、3 时，生效的配置会是 C1 之前的那条配置，这里我们将其标记为 C0 。
++ 这里的 å 是在系统启动时配置好的参数，这个参数可以用来限制同时使用的配置信息，也就是说，我们是无法在 i+å 之前选择使用记录 i 中的配置的。因为我们无法知道哪些服务器使用哪些配置，也无法知道大多数所代表的服务器数量。所以如果 å 的值很小时，整个过程是序列化的，每条记录选择的配置都是不同的，如果 å 为 3 ，也就意味着同时有三条记录可以使用相同的配置，如果 å 大很多时，事情会变得更复杂，我们需要长时间的等待，让新的配置生效。也就是说如果 å 的值是 1000 时，我们需要在 1000 个记录之后才能等到这个配置生效。</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20190519131721110.png" alt="" /></p>
+
+<h2 id="总结">总结</h2>
+
+<ul>
+<li>Basic Paxos：
+
+<ul>
+<li>Prepare 阶段</li>
+<li>Acceptor 阶段</li>
+</ul></li>
+<li>Multi-Paxos：
+
+<ul>
+<li>Choosing log entries</li>
+<li>Leader election</li>
+<li>Eliminting most Prepare requests</li>
+<li>Full infomation propagation</li>
+</ul></li>
+<li>客户协议</li>
+<li>配置变更</li>
+</ul>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
+            
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">TAGGED IN</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/paxos/">Paxos</a>
+
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统</a>
+
+                  </div>
+                
+              
+            
+            <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901sk_buff%E7%BB%93%E6%9E%84/" data-tooltip="Linux内核网络源码解析1——sk_buff结构">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
+        <footer id="footer" class="main-content-wrap">
+  <span class="copyrights">
+    &copy; 2019 liu jianhao. All Rights Reserved
+  </span>
+</footer>
+
+      </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--disabled">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901sk_buff%E7%BB%93%E6%9E%84/" data-tooltip="Linux内核网络源码解析1——sk_buff结构">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
+    </div>
+    
+    <div id="about">
+  <div id="about-card">
+    <div id="about-btn-close">
+      <i class="fa fa-remove"></i>
+    </div>
+    
+      <img id="about-card-picture" src="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=110" alt="Author&#39;s picture" />
+    
+    <h4 id="about-card-name">liu jianhao</h4>
+    
+    
+      <div id="about-card-job">
+        <i class="fa fa-briefcase"></i>
+        <br/>
+        Your job title
+      </div>
+    
+    
+      <div id="about-card-location">
+        <i class="fa fa-map-marker"></i>
+        <br/>
+        Shenzhen
+      </div>
+    
+  </div>
+</div>
+
+    <div id="algolia-search-modal" class="modal-container">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="close-button"><i class="fa fa-close"></i></span>
+      <a href="https://algolia.com" target="_blank" rel="noopener" class="searchby-algolia text-color-light link-unstyled">
+        <span class="searchby-algolia-text text-color-light text-small">by</span>
+        <img class="searchby-algolia-logo" src="https://www.algolia.com/static_assets/images/press/downloads/algolia-light.svg">
+      </a>
+      <i class="search-icon fa fa-search"></i>
+      <form id="algolia-search-form">
+        <input type="text" id="algolia-search-input" name="search"
+          class="form-control input--large search-input" placeholder="Search" />
+      </form>
+    </div>
+    <div class="modal-body">
+      <div class="no-result text-color-light text-center">no post found</div>
+      <div class="results">
+        
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/">
+                <h3 class="media-heading">Paxos、Multi-Paxos详解</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>从 Basic Paxos 到 Multi-Paxos
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901sk_buff%E7%BB%93%E6%9E%84/">
+                <h3 class="media-heading">Linux内核网络源码解析1——sk_buff结构</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  May 5, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>Linux内核源码学习，套接字缓存sk_buff的结构体
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%904compaction/">
+                <h3 class="media-heading">LevelDB源码解析4——compaction</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB的compaction操作
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903get/">
+                <h3 class="media-heading">LevelDB源码解析3——get</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB的get操作
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902put/">
+                <h3 class="media-heading">LevelDB源码解析2——put</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB的put操作
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901open/">
+                <h3 class="media-heading">LevelDB源码解析1——open</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB的open操作
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900.5%E4%BD%BF%E7%94%A8/">
+                <h3 class="media-heading">LevelDB源码解析0.5——使用</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB简单使用
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%900%E5%87%86%E5%A4%87/">
+                <h3 class="media-heading">LevelDB源码解析0——准备</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Jan 1, 2019
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>LevelDB总体概述
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E5%85%AD%E6%AD%A5%E5%AE%9E%E7%8E%B0%E5%A4%8D%E5%88%B6%E7%8A%B6%E6%80%81%E6%9C%BA/">
+                <h3 class="media-heading">yfs实现第六步——实现复制状态机</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第六步实现复制状态机，增加系统容错性
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+          <div class="media">
+            
+            <div class="media-body">
+              <a class="link-unstyled" href="https://liu-jianhao.github.io/2018/12/yfs%E5%AE%9E%E7%8E%B0%E7%AC%AC%E4%BA%94%E6%AD%A5paxos/">
+                <h3 class="media-heading">yfs实现第五步——Paxos</h3>
+              </a>
+              <span class="media-meta">
+                <span class="media-date text-small">
+                  Dec 12, 2018
+                </span>
+              </span>
+              <div class="media-content hide-xs font-merryweather"><p>yfs是一个分布式文件系统，第五步实现分布式一致性算法Paxos
+</p></div>
+            </div>
+            <div style="clear:both;"></div>
+            <hr>
+          </div>
+        
+      </div>
+    </div>
+    <div class="modal-footer">
+      <p class="results-count text-medium"
+         data-message-zero="no post found"
+         data-message-one="1 post found"
+         data-message-other="{n} posts found">
+         28 posts found
+      </p>
+    </div>
+  </div>
+</div>
+    
+  
+    
+    <div id="cover" style="background-image:url('https://liu-jianhao.github.io/images/cover.jpg');"></div>
+  
+
+
+    
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js" integrity="sha256-/BfiIkHlHoVihZdc6TFuj7MmJ0TWcWsMXkeDFwhi0zw=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.7/js/jquery.fancybox.min.js" integrity="sha256-GEAnjcTqVP+vBp3SSc8bEDQqvWAZMiHyUSIorrWwH50=" crossorigin="anonymous"></script>
+
+
+<script src="https://liu-jianhao.github.io/js/script-qi9wbxp2ya2j6p7wx1i6tgavftewndznf4v0hy2gvivk1rxgc3lm7njqb6bz.min.js"></script>
+
+
+<script lang="javascript">
+window.onload = updateMinWidth;
+window.onresize = updateMinWidth;
+document.getElementById("sidebar").addEventListener("transitionend", updateMinWidth);
+function updateMinWidth() {
+  var sidebar = document.getElementById("sidebar");
+  var main = document.getElementById("main");
+  main.style.minWidth = "";
+  var w1 = getComputedStyle(main).getPropertyValue("min-width");
+  var w2 = getComputedStyle(sidebar).getPropertyValue("width");
+  var w3 = getComputedStyle(sidebar).getPropertyValue("left");
+  main.style.minWidth = `calc(${w1} - ${w2} - ${w3})`;
+}
+</script>
+
+<script>
+$(document).ready(function() {
+  hljs.configure({ classPrefix: '', useBR: false });
+  $('pre.code-highlight > code, pre > code').each(function(i, block) {
+    if (!$(this).hasClass('codeblock')) {
+      $(this).addClass('codeblock');
+    }
+    hljs.highlightBlock(block);
+  });
+});
+</script>
+
+
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2019\/05\/paxosmulti-paxos%E8%AF%A6%E8%A7%A3\/';
+          
+            this.page.identifier = '\/2019\/05\/paxosmulti-paxos%E8%AF%A6%E8%A7%A3\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'hugo-tranquilpeak-theme';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
+
+
+
+    
+  </body>
+</html>
+
