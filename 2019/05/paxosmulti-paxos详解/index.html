@@ -443,15 +443,18 @@
 
 <h3 id="领导选举">领导选举</h3>
 
-<p>选举领导者的方式有很多，这里只介绍一种由 Leslie Lamport 建议的简单方式。
-+ 让有 <strong>最高 ID</strong> 的服务器作为领导者
-+ 可以通过每个服务器定期（每 T ms）向其他服务器 <strong>发送心跳消息</strong> 的方式来实现。这些消息包含发送服务器的 ID
-+ 如果它们没有能收到某一具有高 ID 的服务器的心跳消息，这个间隔（通常是 2T ms）需要设置的足够长，让消息有足够的通信传递时间。所以，如果这些服务器没有能接收到高 ID 的服务器消息，然后它们会自己选举成为领导者。
-+ 也就是说，首先它会从客户端接受到请求，其次在 Paxos 协议中，它会 <strong>同时扮演 proposer 和 acceptor</strong>
-+ 如果机器能够接收到来自高 ID 的服务器的心跳消息，它就不会作为 leader，如果它接收到客户端的请求，那么它会 <strong>拒绝</strong> 这个请求，并告知客户端与 leader 进行通信。
-+ 非 leader 服务器不会作为 proposer，<strong>只会作为 acceptor</strong>
-+ 这个机制的优势在于，它不太可能出现两个 leader 同时工作的情况，即使这样，如果出现了两个 leader，Paxos 协议还是能正常工作，只是不是那么高效而已。
-+ 应该注意的是，实际上大多数系统都不会采用这种选举方式，它们会采用基于 <strong>租约</strong> 的方式（lease based approach），这比上述介绍的机制要复杂的多，不过也有其优势。</p>
+<p>选举领导者的方式有很多，这里只介绍一种由 Leslie Lamport 建议的简单方式。</p>
+
+<ul>
+<li>让有 <strong>最高 ID</strong> 的服务器作为领导者</li>
+<li>可以通过每个服务器定期（每 T ms）向其他服务器 <strong>发送心跳消息</strong> 的方式来实现。这些消息包含发送服务器的 ID</li>
+<li>如果它们没有能收到某一具有高 ID 的服务器的心跳消息，这个间隔（通常是 2T ms）需要设置的足够长，让消息有足够的通信传递时间。所以，如果这些服务器没有能接收到高 ID 的服务器消息，然后它们会自己选举成为领导者。</li>
+<li>也就是说，首先它会从客户端接受到请求，其次在 Paxos 协议中，它会 <strong>同时扮演 proposer 和 acceptor</strong></li>
+<li>如果机器能够接收到来自高 ID 的服务器的心跳消息，它就不会作为 leader，如果它接收到客户端的请求，那么它会 <strong>拒绝</strong> 这个请求，并告知客户端与 leader 进行通信。</li>
+<li>非 leader 服务器不会作为 proposer，<strong>只会作为 acceptor</strong></li>
+<li>这个机制的优势在于，它不太可能出现两个 leader 同时工作的情况，即使这样，如果出现了两个 leader，Paxos 协议还是能正常工作，只是不是那么高效而已。</li>
+<li>应该注意的是，实际上大多数系统都不会采用这种选举方式，它们会采用基于 <strong>租约</strong> 的方式（lease based approach），这比上述介绍的机制要复杂的多，不过也有其优势。</li>
+</ul>
 
 <h3 id="减少-prepare-的-rpc-请求">减少 Prepare 的 RPC 请求</h3>
 
@@ -485,17 +488,29 @@
 </ul></li>
 </ul>
 
-<p>解决办法：
-1. 在后台持续尝试 Accept RPCs 直到所有 acceptors 返回
-2. 追踪被选中的日志项
-    + 让acceptedProposal[i] = 无穷大，这样这个日志项就不可以被覆盖，也就是说被选中了
-    + 每个服务器还会保持一个 firstUnchosenIndex：表示未被标识选定的最小下标值
-3. proposer 告诉 acceptors 已经被选中的日志项
-    + Proposer 在 Accept RPCs 中包含它的 firstUnchosenIndex
-    + Acceptor 将选中第i个日志项，如果：
-        + i &lt; request.firstUnchosenIndex
-        + acceptedProposal[i] == request.proposal
-    + 结果：acceptors知道大多数被选中的日志项</p>
+<p>解决办法：</p>
+
+<ol>
+<li>在后台持续尝试 Accept RPCs 直到所有 acceptors 返回</li>
+<li>追踪被选中的日志项
+
+<ul>
+<li>让acceptedProposal[i] = 无穷大，这样这个日志项就不可以被覆盖，也就是说被选中了</li>
+<li>每个服务器还会保持一个 firstUnchosenIndex：表示未被标识选定的最小下标值</li>
+</ul></li>
+<li>proposer 告诉 acceptors 已经被选中的日志项
+
+<ul>
+<li>Proposer 在 Accept RPCs 中包含它的 firstUnchosenIndex</li>
+<li>Acceptor 将选中第i个日志项，如果：
+
+<ul>
+<li>i &lt; request.firstUnchosenIndex</li>
+<li>acceptedProposal[i] == request.proposal</li>
+</ul></li>
+<li>结果：acceptors知道大多数被选中的日志项</li>
+</ul></li>
+</ol>
 
 <p><img src="https://img-blog.csdnimg.cn/2019051912223475.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
 
@@ -572,11 +587,14 @@
 <p>同一时刻不可以出现两个不重叠的多数派
 <img src="https://img-blog.csdnimg.cn/20190519131524470.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
 
-<p>解决办法：
-+ Leslie Lamport 建议的 Paxos 配置变更方案是用 <strong>日志</strong> 来管理这些变更，当前的配置作为日志的一条记录存储，并与其他的日志记录一同被复制同步。
-+ 所以下图中 1-C1、3-C2 表示两个配置信息，其他的用来存储普通的命令。这里有趣的是，配置所使用每条记录是由它的更早的记录所决定的。
-+ 这里有一个系统参数 å 来决定这个更早是多早，假设 å 为 3，我们这里有两个配置相关的记录，C1 存于记录 1 中，C2 存于记录 3 中，这也意味着 C1 在 3 条记录内不会生效，也就是说，C1 从记录 4 开始才会生效。C2 从记录 6 开始才会生效。所以当我们选择记录 1、2、3 时，生效的配置会是 C1 之前的那条配置，这里我们将其标记为 C0 。
-+ 这里的 å 是在系统启动时配置好的参数，这个参数可以用来限制同时使用的配置信息，也就是说，我们是无法在 i+å 之前选择使用记录 i 中的配置的。因为我们无法知道哪些服务器使用哪些配置，也无法知道大多数所代表的服务器数量。所以如果 å 的值很小时，整个过程是序列化的，每条记录选择的配置都是不同的，如果 å 为 3 ，也就意味着同时有三条记录可以使用相同的配置，如果 å 大很多时，事情会变得更复杂，我们需要长时间的等待，让新的配置生效。也就是说如果 å 的值是 1000 时，我们需要在 1000 个记录之后才能等到这个配置生效。</p>
+<p>解决办法：</p>
+
+<ul>
+<li>Leslie Lamport 建议的 Paxos 配置变更方案是用 <strong>日志</strong> 来管理这些变更，当前的配置作为日志的一条记录存储，并与其他的日志记录一同被复制同步。</li>
+<li>所以下图中 1-C1、3-C2 表示两个配置信息，其他的用来存储普通的命令。这里有趣的是，配置所使用每条记录是由它的更早的记录所决定的。</li>
+<li>这里有一个系统参数 å 来决定这个更早是多早，假设 å 为 3，我们这里有两个配置相关的记录，C1 存于记录 1 中，C2 存于记录 3 中，这也意味着 C1 在 3 条记录内不会生效，也就是说，C1 从记录 4 开始才会生效。C2 从记录 6 开始才会生效。所以当我们选择记录 1、2、3 时，生效的配置会是 C1 之前的那条配置，这里我们将其标记为 C0 。</li>
+<li>这里的 å 是在系统启动时配置好的参数，这个参数可以用来限制同时使用的配置信息，也就是说，我们是无法在 i+å 之前选择使用记录 i 中的配置的。因为我们无法知道哪些服务器使用哪些配置，也无法知道大多数所代表的服务器数量。所以如果 å 的值很小时，整个过程是序列化的，每条记录选择的配置都是不同的，如果 å 为 3 ，也就意味着同时有三条记录可以使用相同的配置，如果 å 大很多时，事情会变得更复杂，我们需要长时间的等待，让新的配置生效。也就是说如果 å 的值是 1000 时，我们需要在 1000 个记录之后才能等到这个配置生效。</li>
+</ul>
 
 <p><img src="https://img-blog.csdnimg.cn/20190519131721110.png" alt="" /></p>
 
