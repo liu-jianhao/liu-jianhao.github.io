@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Raft on liu-jianhao&#39;s Blog</title>
+    <link>https://liu-jianhao.github.io/tags/raft/</link>
+    <description>Recent content in Raft on liu-jianhao&#39;s Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 28 May 2019 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://liu-jianhao.github.io/tags/raft/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Raft详解</title>
+      <link>https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/</link>
+      <pubDate>Tue, 28 May 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/</guid>
+      <description>&lt;p&gt;从 Basic Paxos 到 Multi-Paxos
+&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

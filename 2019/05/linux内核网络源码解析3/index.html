@@ -8,19 +8,37 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="Hugo tranquilpeak theme demo">
+<meta name="description" content="Linux内核源码学习
+">
 
 
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta property="og:type" content="website">
-<meta property="og:title" content="liu-jianhao&#39;s Blog">
-<meta name="twitter:title" content="liu-jianhao&#39;s Blog">
-<meta property="og:url" content="https://liu-jianhao.github.io/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/">
+<meta property="og:description" content="Linux内核源码学习
+">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核网络源码解析3">
+<meta name="twitter:title" content="Linux内核网络源码解析3">
+<meta property="og:url" content="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="Hugo tranquilpeak theme demo">
-<meta name="twitter:description" content="Hugo tranquilpeak theme demo">
+<meta property="og:description" content="Linux内核源码学习
+">
+<meta name="twitter:description" content="Linux内核源码学习
+">
 <meta property="og:locale" content="en-us">
+
+  
+    <meta property="article:published_time" content="2019-05-22T00:00:00">
+  
+  
+    <meta property="article:modified_time" content="2019-05-22T00:00:00">
+  
+  
+  
+  
+    
+      <meta property="article:tag" content="Linux kernel">
+    
+  
 
 
 <meta name="twitter:card" content="summary">
@@ -39,16 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>liu-jianhao&#39;s Blog</title>
+    <title>Linux内核网络源码解析3</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
-      <link rel="alternate" type="application/rss+xml" title="RSS" href="https://liu-jianhao.github.io/index.xml">
-    
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -68,7 +84,7 @@
 
   <body>
     <div id="blog">
-      <header id="header" data-behavior="1">
+      <header id="header" data-behavior="4">
   <i id="btn-open-sidebar" class="fa fa-lg fa-bars"></i>
   <div class="header-title">
     <a class="header-title-link" href="https://liu-jianhao.github.io/">liu-jianhao&#39;s Blog</a>
@@ -76,7 +92,7 @@
   
 </header>
 
-      <nav id="sidebar" data-behavior="1">
+      <nav id="sidebar" data-behavior="4">
   <div class="sidebar-container">
     
       <div class="sidebar-profile">
@@ -164,84 +180,20 @@
 
       
 
-      <div id="main" data-behavior="1"
+      <div id="main" data-behavior="4"
         class="
                hasCoverMetaIn
                ">
-        <section class="postShorten-group main-content-wrap">
+        <article class="post" itemscope itemType="http://schema.org/BlogPosting">
           
           
-            
+            <div class="post-header main-content-wrap text-left">
   
-    
-      
-        
-      
-    
+    <h1 class="post-title" itemprop="headline">
+      Linux内核网络源码解析3
+    </h1>
   
-
-
   
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/">
-          Raft详解
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-05-28T00:00:00Z">
-        
-  May 28, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>从 Basic Paxos 到 Multi-Paxos
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/">
-          Linux内核网络源码解析3
-        </a>
-      </h1>
-      
   <div class="postShorten-meta post-meta">
     
       <time itemprop="datePublished" datetime="2019-05-22T00:00:00Z">
@@ -253,287 +205,174 @@
     
   </div>
 
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Linux内核源码学习
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
+</div>
           
+          <div class="post-content markdown" itemprop="articleBody">
+            <div class="main-content-wrap">
+              <p>Linux内核源码学习
+</p>
+
+<h1 id="前言">前言</h1>
+
+<p>## 网络层输入接口 packet_type
+ 在链路层和网络层起到桥梁作用。在以太网上，当以太网帧到达主机后，会根据协议族的报文类型调用相应的网络层接收处理函数</p>
+
+<p><code>include/linux/netdevice.h</code>：</p>
+
+<pre><code class="language-c">struct packet_type {
+	__be16			type;	/* This is really htons(ether_type). */
+	struct net_device	*dev;	/* NULL is wildcarded here	     */
+	int			(*func) (struct sk_buff *,
+					 struct net_device *,
+					 struct packet_type *,
+					 struct net_device *);
+	struct sk_buff		*(*gso_segment)(struct sk_buff *skb,
+						int features);
+	int			(*gso_send_check)(struct sk_buff *skb);
+	void			*af_packet_priv;
+	struct list_head	list;
+};
+</code></pre>
+
+<ul>
+<li><code>type</code>：标识以太网帧或其他链路层报文承载网络层报文的协议号</li>
+<li><code>dev</code>：接收从指定网络设备输入的数据包。如果为NULL则表示接收来自全部网络设备的数据包</li>
+<li><code>(*func) (struct sk_buff *, struct net_device *, struct packet_type *, struct net_device *);</code>：协议入口接收处理函数。第一个参数为待输入的报文，第二个参数为当前处理该报文的网络设备，第三个参数为报文类型，第四个参数为报文的原始输入网络设备</li>
+<li>GSO是网络设备支持传输层的一个功能。当GSO数据报输出时到达网络设备，如果网络设备不支持GSO的情况，则需要传输层对输出的数据报重新进行GSO分段和校验和计算。因此需要网络层提供接口给设备层，能够访问到传输层的GSO分段额校验和计算功能，对输出的数据报进行分段和执行校验和</li>
+<li><code>struct sk_buff *(*gso_segment)(struct sk_buff *skb, int features)</code>：作用是回调传输层GSO分段方法对大段进行分段</li>
+<li><code>int (*gso_send_check)(struct sk_buff *skb)</code>：作用是回调传输层在分段之前对伪首部进行校验和的计算</li>
+<li><code>af_packet_priv</code>：用来存储各协议族的私有数据</li>
+<li><code>list</code>：连接不同协议族报文接收例程的链表</li>
+</ul>
+
+<h3 id="ipv4的packet-type">IPv4的packet_type</h3>
+
+<p>IPv4的packet_type结构实例
+<code>net/ipv4/af_inet.c</code></p>
+
+<pre><code class="language-c">static struct packet_type ip_packet_type = {
+	.type = __constant_htons(ETH_P_IP),
+	.func = ip_rcv,
+	.gso_send_check = inet_gso_send_check,
+	.gso_segment = inet_gso_segment,
+};
+</code></pre>
+
+<p>成员前面的<code>.</code>是什么？
+ + 乱序初始化是C99标准新加的，比较直观的一种初始化方式。相比顺序初始化而言，乱序初始化就如其名，成员可以不按照顺序初始化，而且可以只初始化部分成员，扩展性较好。linux内核中采用这种方式初始化struct。
++ 乱序初始化有两种方式，一种是用点（.）符号，一种是用冒号（：）。方式1是C99标准，方式2是GCC的扩展，强烈建议使用第一种方式。
+例如：</p>
+
+<pre><code class="language-c">#include &lt;stdio.h&gt;
+//函数指针
+typedef int (*caculate_cb)(int a, int b);
+//结构体定义
+typedef struct _oper {
+    int a;
+    int b;
+    caculate_cb cal_func;
+} oper;
+//加法函数定义
+int add(int a, int b) {
+    return (a+b);
+}
+
+int main() {
+    int ret = 0;
+    //顺序初始化结构体1
+    oper oper_one = {10, 20, add};
+    //乱序初始化结构体2
+    oper oper_two = {
+        .b = 30,
+        .a = 20,
+        .cal_func = &amp;add,
+    };
+    //乱序初始化结构体3
+    oper oper_three = {
+         cal_func:&amp;add,
+         a:40,
+         b:20,
+    };
+    return 0;
+}
+</code></pre>
+              
+            </div>
+          </div>
+          <div id="post-footer" class="post-footer main-content-wrap">
             
-  
-    
-      
-        
-      
-    
-  
+              
+                
+                
+                  <div class="post-footer-tags">
+                    <span class="text-color-light text-small">TAGGED IN</span><br/>
+                    
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/linux-kernel/">Linux kernel</a>
 
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/">
-          Linux内核网络源码解析2——sk_buff操作
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-05-20T00:00:00Z">
-        
-  May 20, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Linux内核源码学习，套接字缓存sk_buff的操作函数
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
+                  </div>
+                
+              
             
+            <div class="post-actions-wrap">
   
-    
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/" data-tooltip="Raft详解">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/" data-tooltip="Linux内核网络源码解析2——sk_buff操作">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
       
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
         
       
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/">
-          Paxos、Multi-Paxos详解
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
         </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-05-19T00:00:00Z">
-        
-  May 19, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>从 Basic Paxos 到 Multi-Paxos
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901sk_buff%E7%BB%93%E6%9E%84/">
-          Linux内核网络源码解析1——sk_buff结构
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-05-16T00:00:00Z">
-        
-  May 16, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>Linux内核源码学习，套接字缓存sk_buff的结构体
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901sk_buff%E7%BB%93%E6%9E%84/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%904compaction/">
-          LevelDB源码解析4——compaction
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-01-28T00:00:00Z">
-        
-  January 28, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>LevelDB的compaction操作
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%904compaction/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-            
-  
-    
-      
-        
-      
-    
-  
-
-
-  
-
-<article class="postShorten postShorten--thumbnailimg-bottom" itemscope itemType="http://schema.org/BlogPosting">
-  <div class="postShorten-wrap">
-    
-    <div class="postShorten-header">
-      <h1 class="postShorten-title" itemprop="headline">
-        <a class="link-unstyled" href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903get/">
-          LevelDB源码解析3——get
-        </a>
-      </h1>
-      
-  <div class="postShorten-meta post-meta">
-    
-      <time itemprop="datePublished" datetime="2019-01-25T00:00:00Z">
-        
-  January 25, 2019
-
-      </time>
-    
-    
-  </div>
-
-    </div>
-    <div class="postShorten-excerpt" itemprop="articleBody">
-      
-        <p>LevelDB的get操作
-</p>
-      
-      <p>
-        <a href="https://liu-jianhao.github.io/2019/01/leveldb%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903get/" class="postShorten-excerpt_link link">Continue reading</a>
-        
-      </p>
-    </div>
-  </div>
-  
-</article>
-
-          
-          
-  <div class="pagination-bar">
-    <ul class="pagination">
-      
-        
-        
-          <li class="pagination-next">
-            <a class="btn btn--default btn--small" href="https://liu-jianhao.github.io/page/2/">
-              <span>OLDER POSTS</span>
-              <i class="fa fa-angle-right text-base icon-ml"></i>
-            </a>
-          </li>
-        
-      
-      <li class="pagination-number">page 1 of 5</li>
+      </li>
     </ul>
-  </div>
+  
+</div>
 
-
-        </section>
+            
+              
+                <div id="disqus_thread">
+  <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+              
+            
+          </div>
+        </article>
         <footer id="footer" class="main-content-wrap">
   <span class="copyrights">
     &copy; 2019 liu jianhao. All Rights Reserved
@@ -541,6 +380,66 @@
 </footer>
 
       </div>
+      <div id="bottom-bar" class="post-bottom-bar" data-behavior="4">
+        <div class="post-actions-wrap">
+  
+      <nav >
+        <ul class="post-actions post-action-nav">
+          
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/" data-tooltip="Raft详解">
+              
+                  <i class="fa fa-angle-left"></i>
+                  <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
+                </a>
+            </li>
+            <li class="post-action">
+              
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/" data-tooltip="Linux内核网络源码解析2——sk_buff操作">
+              
+                  <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
+                  <i class="fa fa-angle-right"></i>
+                </a>
+            </li>
+          
+        </ul>
+      </nav>
+    <ul class="post-actions post-action-share" >
+      
+        <li class="post-action hide-lg hide-md hide-sm">
+          <a class="post-action-btn btn btn--default btn-open-shareoptions" href="#btn-open-shareoptions">
+            <i class="fa fa-share-alt"></i>
+          </a>
+        </li>
+        
+      
+      
+        <li class="post-action">
+          <a class="post-action-btn btn btn--default" href="#disqus_thread">
+            <i class="fa fa-comment-o"></i>
+          </a>
+        </li>
+      
+      <li class="post-action">
+        
+          <a class="post-action-btn btn btn--default" href="#">
+        
+          <i class="fa fa-list"></i>
+        </a>
+      </li>
+    </ul>
+  
+</div>
+
+      </div>
+      <div id="share-options-bar" class="share-options-bar" data-behavior="4">
+  <i id="btn-close-shareoptions" class="fa fa-close"></i>
+  <ul class="share-options">
+    
+  </ul>
+</div>
+<div id="share-options-mask" class="share-options-mask"></div>
     </div>
     
     <div id="about">
@@ -827,9 +726,36 @@ $(document).ready(function() {
 </script>
 
 
+  
+    
+      <script>
+        var disqus_config = function () {
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2019\/05\/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903\/';
+          
+            this.page.identifier = '\/2019\/05\/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903\/'
+          
+        };
+        (function() {
+          
+          
+          if (window.location.hostname == "localhost") {
+            return;
+          }
+          var d = document, s = d.createElement('script');
+          var disqus_shortname = 'hugo-tranquilpeak-theme';
+          s.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+  
+
 
 
 
     
   </body>
 </html>
+

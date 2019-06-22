@@ -8,35 +8,35 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="description" content="Linux内核源码学习，套接字缓存sk_buff的操作函数
 ">
 
 
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="Linux内核源码学习，套接字缓存sk_buff的操作函数
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="锐明科技、迈科龙面经">
-<meta name="twitter:title" content="锐明科技、迈科龙面经">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+<meta property="og:title" content="Linux内核网络源码解析2——sk_buff操作">
+<meta name="twitter:title" content="Linux内核网络源码解析2——sk_buff操作">
+<meta property="og:url" content="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="Linux内核源码学习，套接字缓存sk_buff的操作函数
 ">
-<meta name="twitter:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="twitter:description" content="Linux内核源码学习，套接字缓存sk_buff的操作函数
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-07-30T00:00:00">
+    <meta property="article:published_time" content="2019-05-20T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-07-30T00:00:00">
+    <meta property="article:modified_time" content="2019-05-20T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="面经">
+      <meta property="article:tag" content="Linux kernel">
     
   
 
@@ -57,14 +57,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>锐明科技、迈科龙面经</title>
+    <title>Linux内核网络源码解析2——sk_buff操作</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -190,15 +190,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      锐明科技、迈科龙面经
+      Linux内核网络源码解析2——sk_buff操作
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-07-30T00:00:00Z">
+      <time itemprop="datePublished" datetime="2019-05-20T00:00:00Z">
         
-  July 30, 2018
+  May 20, 2019
 
       </time>
     
@@ -209,45 +209,240 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>锐明科技笔试、迈科龙笔试面试总结
+              <p>Linux内核源码学习，套接字缓存sk_buff的操作函数
 </p>
 
 <h1 id="前言">前言</h1>
 
-<p>本来想着要在大二暑假找个暑期实习，所以投了将近十家公司，但是只有两家有通知，其他都没消息了，
-估计因为我不是是应届生，且实习时间太短，当然还有就是自己太菜了。</p>
+<p>上一篇解析了sk_buff的结构体成员，这一篇就来解析sk_buff的操作函数。</p>
 
-<p>下面记录一些还有印象的或但是不太懂的题。</p>
+<h3 id="分配sk-buff-alloc-skb">分配sk_buff：alloc_skb()</h3>
 
-<h2 id="锐明科技笔试">锐明科技笔试</h2>
+<p>函数声明：</p>
 
-<p>当时投的是C++软件工程师。</p>
+<pre><code class="language-c">struct sk_buff *__alloc_skb(unsigned int size, gfp_t gfp_mask,
+			    int fclone, int node)
+</code></pre>
 
-<ol>
-<li>以<code>1 2 3 4</code>顺序<code>push</code>进一个容量为4的栈，写出出栈所有的可能。
-```shell
-这道题考察的是栈的操作，注意思路要清晰，别想到一个就写一个，是有规律的，这样思路容易乱。
-4 3 2 1
-3 4 2 1
-3 2 4 1</li>
-</ol>
+<ul>
+<li>size，待分配sk_buff的线性存储区的长度</li>
+<li>gfp_mask，分配内存的方式</li>
+<li>fclone，预测是否会克隆，用于确定从哪个高速缓存中分配</li>
+<li>node，当支持NUMA(非均匀质存储结构)时，用于确定何种区域中分配sk_buff
+<img src="https://img-blog.csdnimg.cn/20190516170951436.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
 
-<p>2 4 3 1
-2 3 4 1
-2 3 1 4
-2 1 4 3
-2 1 3 4</p>
+<p>图中padding是为了对齐而填充的区域，填充区域上面区域的大小为size</p>
 
-<p>1 4 3 2
-1 3 4 2
-1 3 2 4
-1 2 4 3
-1 2 3 4
-```</p>
+<h3 id="释放sk-buff-kfree-skb">释放sk_buff：kfree_skb()</h3>
 
-<ol>
-<li>用C++实现一个双向链表。</li>
-</ol>
+<p>函数声明：</p>
+
+<pre><code class="language-c">void kfree_skb(struct sk_buff *skb)
+</code></pre>
+
+<p>只在 skb-&gt;users 为1的情况下才释放内存，否则只是简单的递减</p>
+
+<h3 id="为协议首部预留空间-skb-reserve">为协议首部预留空间：skb_reserve()</h3>
+
+<p>在数据缓存区头部预留一定的空间，只能用于空的sk_buff</p>
+
+<p>只是简单地更新了分别指向负载起始和结尾的data和tail指针
+<img src="https://img-blog.csdnimg.cn/20190519183626538.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="添加用户之前调用-skb-put">添加用户之前调用：skb_put()</h3>
+
+<p>例子：</p>
+
+<pre><code class="language-c">unsigned char *data = skb_put(skb,   user_data_len);
+memcpy(data, 0x11,  user_data_len);
+</code></pre>
+
+<p><img src="https://img-blog.csdnimg.cn/20190516171006473.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<p>修改tail指针，下移len字节，同时更新数据区长度len</p>
+
+<h3 id="添加首部-skb-push">添加首部：skb_push()</h3>
+
+<p>例子：</p>
+
+<pre><code class="language-c">unsigned char *tcp_header = skb-&gt;push(skb, sizeof(struct udphdr));
+struct tcphdr *tcp;
+tcp = tcp_header;
+tcp-&gt;source = htons(1025);
+tcp-&gt;dest = htons(2095);
+tcp-&gt;len = htons(user_data_len);
+tcp-&gt;check = 0;
+</code></pre>
+
+<p><img src="https://img-blog.csdnimg.cn/20190516171014895.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="忽略其他层的头部-skb-pull">忽略其他层的头部：skb_pull()</h3>
+
+<p>将data指针往下移动，在数据区首部忽略len字节长度的数据，通常用于接收的数据包后在各层由下往上传递时，上层忽略下层的首部
+<img src="https://img-blog.csdnimg.cn/20190516171024846.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="小结">小结</h3>
+
+<p><img src="https://img-blog.csdnimg.cn/201905161711034.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="克隆sk-buff-skb-clone">克隆sk_buff：skb_clone()</h3>
+
+<p>只复制sk_buff描述符，同时增加数据缓存区的引用计数</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20190516171044978.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="拷贝sk-buff及其数据-pskb-copy-skb-copy">拷贝sk_buff及其数据：pskb_copy() &amp; skb_copy()</h3>
+
+<ul>
+<li>修改的数据在skb-&gt;head和skb-&gt;end之间，可使用pskb_copy()来复制这部分数据</li>
+<li>如果同时需要修改聚合分散IO存储区中的数据，就必须使用skb_copy()</li>
+</ul>
+
+<p><img src="https://img-blog.csdnimg.cn/20190516171052811.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="添加尾部数据-skb-add-data">添加尾部数据：skb_add_data()</h3>
+
+<p>将指定用户空间的数据添加到skb_buff的数据缓存区的尾部</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20190519185717241.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="删除尾部数据-skb-trim">删除尾部数据：skb_trim()</h3>
+
+<p>与skb_add_data()操作相反</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20190519185723284.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h3 id="拆分数据-skb-split">拆分数据：skb_split()</h3>
+
+<p>根据指定长度拆分sk_buff，使得原sk_buff中的数据长度为指定长度，剩下的数据保存到拆分得到的sk_buff中</p>
+
+<p>LEN：拆分长度，hlen：线性数据长度
++ 当拆分数据的长度小于线性数据长度时，直接拆分线性数据区即可
+<img src="https://img-blog.csdnimg.cn/20190519190731652.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
+<img src="https://img-blog.csdnimg.cn/2019051919073733.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<ul>
+<li>拆分数据的长度大于线性数据长度时，则需要拆分非线性区域中的数据，拆分长度LEN大于hlen并且LEN小于hlen+S1
+<img src="https://img-blog.csdnimg.cn/20190519191041300.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" />
+<img src="https://img-blog.csdnimg.cn/2019051919073733.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
+
+<h3 id="其它函数">其它函数</h3>
+
+<p>There are a bunch of skb support functions provided by the sk_buff layer.</p>
+
+<h4 id="allocation-free-copy-clone-and-expansion-functions">allocation / free / copy / clone and expansion functions</h4>
+
+<ul>
+<li><p>struct sk_buff *alloc_skb(unsigned int size, int gfp_mask)
++This function allocates a new skb. This is provided by the skb layer to initialize some privat data and do memory statistics. The returned buffer has no headroom and a tailroom of /size/ bytes.</p></li>
+
+<li><p>void kfree_skb(struct sk_buff *skb)
++Decrement the skb&rsquo;s usage count by one and free the skb if no references left.</p></li>
+
+<li><p>struct sk_buff *skb_get(struct sk_buff *skb)
++Increments the skb&rsquo;s usage count by one and returns a pointer to it.</p></li>
+
+<li><p>struct sk_buff *skb_clone(struct sk_buff *skb, int gfp_mask)
++This function clones a skb. Both copies share the packet data but have their own struct sk_buff. The new copy is not owned by any socket, reference count is 1.</p></li>
+
+<li><p>struct sk_buff *skb_copy(const struct sk_buff *skb, int gfp_mask)</p>
+
+<ul>
+<li>Makes a real copy of the skb, including packet data. This is needed, if You wish to modify the packet data. Reference count of the new skb is 1.</li>
+</ul></li>
+
+<li><p>struct skb_copy_expand(const struct sk_buff *skb, int new_headroom, int new_tailroom, int gfp_mask)</p>
+
+<ul>
+<li>Make a copy of the skb, including packet data. Additionally the new skb has a haedroom of /new_headroom/ bytes size and a tailroom of /new_tailroom/ bytes.</li>
+</ul></li>
+</ul>
+
+<h4 id="anciliary-functions">anciliary functions</h4>
+
+<ul>
+<li><p>int skb_cloned(struct sk_buff *skb)</p>
+
+<ul>
+<li>Is the skb a clone?</li>
+</ul></li>
+
+<li><p>int skb_shared(struct sk_Buff *skb)</p>
+
+<ul>
+<li>Is this skb shared? (is the reference count &gt; 1)?</li>
+</ul></li>
+</ul>
+
+<h4 id="operations-on-lists-of-skb-s">operations on lists of skb&rsquo;s</h4>
+
+<ul>
+<li><p>struct sk_buff *skb_peek(struct sk_buff<em>head *list</em>)</p>
+
+<ul>
+<li>peek a skb from front of the list; does not remove skb from the list</li>
+</ul></li>
+
+<li><p>struct sk_buff *skb_peek_tail(struct sk_buff<em>head *list</em>)</p>
+
+<ul>
+<li>peek a skb from tail of the list; does not remove sk from the list</li>
+</ul></li>
+
+<li><p>__u32 skb_queue_len(sk_buff<em>head *list</em>)</p>
+
+<ul>
+<li>return the length of the given skb list</li>
+</ul></li>
+
+<li><p>void skb_queue_head(struct sk_buff<em>head *list</em>, struct sk_buff *newsk)</p>
+
+<ul>
+<li>enqueue a skb at the head of a given list</li>
+</ul></li>
+
+<li><p>void skb_queue_tail(struct sk_buff<em>head *list</em>, struct sk_buff *newsk)</p>
+
+<ul>
+<li>enqueue a skb at the end of a given list.</li>
+</ul></li>
+
+<li><p>int skb_headroom(struct sk_buff *skb)</p>
+
+<ul>
+<li>return the amount of bytes of free space at the head of skb</li>
+</ul></li>
+
+<li><p>int skb_tailroom(struct sk_buff *skb)</p>
+
+<ul>
+<li>return the amount of bytes of free space at the end of skb</li>
+</ul></li>
+
+<li><p>struct sk_buff *skb_cow(struct sk_buff *skb, int headroom)</p>
+
+<ul>
+<li>if the buffer passed lacks sufficient headroom or is a clone it is copied and additional headroom made available.</li>
+</ul></li>
+
+<li><p>void struct sk_buff *skb_dequeue(struct sk_buff<em>head *list</em>)</p>
+
+<ul>
+<li>skb_dequeue() takes the first buffer from a list (dequeue a skb from the head of the given list) If the list is empty a NULL pointer is returned. This is used to pull buffers off queues. The buffers are added with the routines skb_queue_head() andskb_queue_tail().</li>
+</ul></li>
+
+<li><p>struct sk_buff *sbk_dequeue_tail(struct sk_buff<em>head *list</em>)</p>
+
+<ul>
+<li>dequeue a skb from the tail of the given list</li>
+</ul></li>
+</ul>
+
+<h1 id="总结">总结</h1>
+
+<p>这篇笔记包括了大部分sk_buff的操作函数，为以后使用打下基础</p>
               
             </div>
           </div>
@@ -259,7 +454,7 @@
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">面经</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/linux-kernel/">Linux kernel</a>
 
                   </div>
                 
@@ -272,7 +467,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/" data-tooltip="Linux内核网络源码解析3">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -280,7 +475,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/" data-tooltip="Paxos、Multi-Paxos详解">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -340,7 +535,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/" data-tooltip="Linux内核网络源码解析3">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -348,7 +543,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/paxosmulti-paxos%E8%AF%A6%E8%A7%A3/" data-tooltip="Paxos、Multi-Paxos详解">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -682,9 +877,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2019\/05\/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C\/';
           
-            this.page.identifier = '\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/'
+            this.page.identifier = '\/2019\/05\/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%902sk_buff%E6%93%8D%E4%BD%9C\/'
           
         };
         (function() {

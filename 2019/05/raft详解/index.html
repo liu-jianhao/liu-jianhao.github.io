@@ -8,35 +8,37 @@
 <meta name="generator" content="Hugo 0.41 with theme Tranquilpeak 0.4.3-SNAPSHOT">
 <meta name="author" content="liu jianhao">
 <meta name="keywords" content="">
-<meta name="description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="description" content="从 Basic Paxos 到 Multi-Paxos
 ">
 
 
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="从 Basic Paxos 到 Multi-Paxos
 ">
 <meta property="og:type" content="article">
-<meta property="og:title" content="锐明科技、迈科龙面经">
-<meta name="twitter:title" content="锐明科技、迈科龙面经">
-<meta property="og:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
-<meta property="twitter:url" content="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+<meta property="og:title" content="Raft详解">
+<meta name="twitter:title" content="Raft详解">
+<meta property="og:url" content="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/">
+<meta property="twitter:url" content="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/">
 <meta property="og:site_name" content="liu-jianhao&#39;s Blog">
-<meta property="og:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta property="og:description" content="从 Basic Paxos 到 Multi-Paxos
 ">
-<meta name="twitter:description" content="锐明科技笔试、迈科龙笔试面试总结
+<meta name="twitter:description" content="从 Basic Paxos 到 Multi-Paxos
 ">
 <meta property="og:locale" content="en-us">
 
   
-    <meta property="article:published_time" content="2018-07-30T00:00:00">
+    <meta property="article:published_time" content="2019-05-28T00:00:00">
   
   
-    <meta property="article:modified_time" content="2018-07-30T00:00:00">
+    <meta property="article:modified_time" content="2019-05-28T00:00:00">
   
   
   
   
     
-      <meta property="article:tag" content="面经">
+      <meta property="article:tag" content="Raft">
+    
+      <meta property="article:tag" content="分布式系统">
     
   
 
@@ -57,14 +59,14 @@
   <meta property="twitter:image" content="https://www.gravatar.com/avatar/a33640901bb99b20b9b97e87d4877421?s=640">
 
 
-    <title>锐明科技、迈科龙面经</title>
+    <title>Raft详解</title>
 
     <link rel="icon" href="https://liu-jianhao.github.io/favicon.png">
     
 
     
 
-    <link rel="canonical" href="https://liu-jianhao.github.io/2018/07/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F/">
+    <link rel="canonical" href="https://liu-jianhao.github.io/2019/05/raft%E8%AF%A6%E8%A7%A3/">
 
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous" />
@@ -190,15 +192,15 @@
             <div class="post-header main-content-wrap text-left">
   
     <h1 class="post-title" itemprop="headline">
-      锐明科技、迈科龙面经
+      Raft详解
     </h1>
   
   
   <div class="postShorten-meta post-meta">
     
-      <time itemprop="datePublished" datetime="2018-07-30T00:00:00Z">
+      <time itemprop="datePublished" datetime="2019-05-28T00:00:00Z">
         
-  July 30, 2018
+  May 28, 2019
 
       </time>
     
@@ -209,44 +211,447 @@
           
           <div class="post-content markdown" itemprop="articleBody">
             <div class="main-content-wrap">
-              <p>锐明科技笔试、迈科龙笔试面试总结
+              <p>从 Basic Paxos 到 Multi-Paxos
 </p>
 
-<h1 id="前言">前言</h1>
+<h2 id="目标-日志复制">目标：日志复制</h2>
 
-<p>本来想着要在大二暑假找个暑期实习，所以投了将近十家公司，但是只有两家有通知，其他都没消息了，
-估计因为我不是是应届生，且实习时间太短，当然还有就是自己太菜了。</p>
+<p><img src="https://img-blog.csdnimg.cn/20190523123611575.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
 
-<p>下面记录一些还有印象的或但是不太懂的题。</p>
+<ul>
+<li>日志复制 =&gt; 复制状态机
 
-<h2 id="锐明科技笔试">锐明科技笔试</h2>
+<ul>
+<li>所有服务器以一样的顺序执行一样的命令</li>
+</ul></li>
+<li>一致性模型确保合理的日志复制</li>
+<li>只要大多数服务器能运行，系统就能服务</li>
+<li>失败模型：失败-停止(非拜占庭)、延迟/丢失消息</li>
+</ul>
 
-<p>当时投的是C++软件工程师。</p>
+<h2 id="达成一致性的方法">达成一致性的方法</h2>
+
+<p>两种方法：
++ 对等的，leader-less：
+    + 所有服务器扮演同样的角色
+    + 客户可以与任意一个联系
++ 非对等的，leader-based：
+    + 在任意给定的时刻，只有一个服务器管理，其他服务器接收它的决定
+    + 客户和leader联系
++ Raft使用一个leader：
+    + 分解问题(正常运行，leader变更)
+    + 简化正常操作(没有冲突)
+    + 比leader-less方法更有效</p>
+
+<h2 id="raft概要">Raft概要</h2>
 
 <ol>
-<li>以<code>1 2 3 4</code>顺序<code>push</code>进一个容量为4的栈，写出出栈所有的可能。
-```shell
-这道题考察的是栈的操作，注意思路要清晰，别想到一个就写一个，是有规律的，这样思路容易乱。
-4 3 2 1
-3 4 2 1
-3 2 4 1</li>
+<li>领导人选举
+
+<ul>
+<li>选择其中一个服务器作为 leader</li>
+<li>检测服务器宕机，选举新的 leader</li>
+</ul></li>
+<li>正常运行(基本的日志复制)</li>
+<li>领导人选举之后的安全性和一致性</li>
+<li>淘汰老的 leader</li>
+<li>客户交互
+
+<ul>
+<li>实现线性语义</li>
+</ul></li>
+<li>配置变更
+
+<ul>
+<li>添加和移除服务器</li>
+</ul></li>
 </ol>
 
-<p>2 4 3 1
-2 3 4 1
-2 3 1 4
-2 1 4 3
-2 1 3 4</p>
+<h2 id="服务器状态">服务器状态</h2>
 
-<p>1 4 3 2
-1 3 4 2
-1 3 2 4
-1 2 4 3
-1 2 3 4
-```</p>
+<ul>
+<li>在任意时刻，每个服务器只能是以下三种状态之一：
+
+<ul>
+<li>Leader：处理客户端的所有交互，日志复制
+
+<ul>
+<li>一个时刻最多只有一个</li>
+</ul></li>
+<li>Floower：完全被动(不可以发送任何RPCs，只能回应到达的RPCs)</li>
+<li>Candidate：用来选举出一个新 leader</li>
+</ul></li>
+<li>正常运行：1个 leader，N-1个followes
+<img src="https://img-blog.csdnimg.cn/20190523162126617.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
+
+<h2 id="terms">Terms</h2>
+
+<p><img src="https://img-blog.csdnimg.cn/20190523195140485.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<ul>
+<li>时间分成 terms：
+
+<ul>
+<li>选举</li>
+<li>在一个 leader 下正常运行</li>
+</ul></li>
+<li>每个 term 最多只有一个 leader</li>
+<li>有些 term 可能没有 leader (选举失败：比如刚好每个服务器都同时变成了 candidate)</li>
+<li>每个服务器保持 current term 的值</li>
+<li>terms 的作用：识别过期的信息</li>
+</ul>
+
+<h2 id="心跳和超时">心跳和超时</h2>
+
+<ul>
+<li>服务器开始都是 followers</li>
+<li>followers 都希望能收到从 leaders 或 candidate 发来的RPCs</li>
+<li>leaders 必须发送心跳(空的 AppendEntries RPCs)来保持威信</li>
+<li>如果没收到RPCs导致选举超时了：
+
+<ul>
+<li>follower 认为 leader 已经宕机了</li>
+<li>follower 开始新的选举</li>
+<li>超时时间一般在 100-500ms</li>
+</ul></li>
+</ul>
+
+<h2 id="选举">选举</h2>
+
+<ul>
+<li>current term + 1</li>
+<li>变为 candidate</li>
+<li>给自己投票</li>
+<li>发送 RequestVote RPCs 给所有其他服务器，如果没收到回应，重传直到回应，之后可能会有三种情况：
 
 <ol>
-<li>用C++实现一个双向链表。</li>
+<li>从大多数服务器收到投票
+
+<ul>
+<li>变为 leader</li>
+<li>发送 AppendEntries 心跳给所有其他服务器</li>
+</ul></li>
+<li>收到一个 leader 的RPCs
+
+<ul>
+<li>立刻变为 follower</li>
+</ul></li>
+<li>没有人赢得选举
+
+<ul>
+<li>term + 1，重新选举</li>
+</ul></li>
+</ol></li>
+</ul>
+
+<h2 id="选举特性">选举特性</h2>
+
+<ul>
+<li>安全性：每个 term 只允许最多一个服务器赢得选举
+
+<ul>
+<li>每个服务器在每个 term 只能投一票</li>
+<li>两个不同的 candidates 不可能同时取得大多数的选票</li>
+</ul></li>
+<li>活性：candidate 最终会赢得选举
+
+<ul>
+<li>选举超时时间选择在[T, 2T]间的一个随机值</li>
+<li>如果T &gt;&gt; 广播时间会工作的很好</li>
+</ul></li>
+</ul>
+
+<h2 id="日志结构">日志结构</h2>
+
+<p><img src="https://img-blog.csdnimg.cn/20190523195208949.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<ul>
+<li>日志项 = index，term，command</li>
+<li>日志存储在磁盘上</li>
+<li>如果日志项已经存储在大多数服务器上，则该日志项是 committed</li>
+</ul>
+
+<h2 id="正常运行">正常运行</h2>
+
+<ul>
+<li>客户发送命令给 leader</li>
+<li>leader 添加命令到它自己的日志中</li>
+<li>leader 发送 AppendEntries RPCs 给 followers</li>
+<li>一旦新的日志 committed
+
+<ul>
+<li>leader 在它的状态机上执行该命令，返回结果给客户</li>
+<li>leader 会在后续的 AppendEntries RPCs 中通知 followers 已经 committed 的日志项</li>
+<li>followers 在它们的状态机上执行已经 committed 的命令</li>
+</ul></li>
+<li>挂掉或落后很多的 followers？
+
+<ul>
+<li>leader 重发 RPCs 直到成功</li>
+</ul></li>
+<li>在正常情况下性能很好：
+
+<ul>
+<li>只需给大多数服务器一个成功的 RPC</li>
+</ul></li>
+</ul>
+
+<h2 id="日志一致性">日志一致性</h2>
+
+<ul>
+<li>如果不同服务器上的某个日志项有着相同的 index 和 term(下图的第5项)：
+
+<ul>
+<li>它们存储着相同的命令</li>
+<li>而且该日志项之前的所有日志都相同
+<img src="https://img-blog.csdnimg.cn/20190523195757530.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul></li>
+<li>如果给定日志项已经 committed，那么该日志项之前所有的日志项也都 committed</li>
+</ul>
+
+<h2 id="appendentries-一致性检查">AppendEntries 一致性检查</h2>
+
+<ul>
+<li>每个 AppendEntries RPC 包含最新的日志项之前一项的 index，term (如下图的第4项)</li>
+<li>follower 必须包含一样的日志项，否则拒绝请求
+
+<ul>
+<li>下图的上半部分能对应的上，所以成功</li>
+<li>下图的下半部分没匹配上，所以失败</li>
+</ul></li>
+<li></li>
+</ul>
+
+<p><img src="https://img-blog.csdnimg.cn/20190523200109222.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h2 id="leader-变更">Leader 变更</h2>
+
+<ul>
+<li>在新 leader 的 term：
+
+<ul>
+<li>老 leader 可能会留下只复制了部分的日志项</li>
+<li>没有什么特殊的步骤，只需要正常运行</li>
+<li>leader 的日志就是正确的</li>
+<li>最终都会让 follower 的日志和 leader 一样</li>
+<li>多个服务器宕机可能会导致很多没用的日志项</li>
+</ul></li>
+</ul>
+
+<p>下图的S4和S5发生了网络分区</p>
+
+<p><img src="https://img-blog.csdnimg.cn/20190523200544288.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h2 id="安全性的要求">安全性的要求</h2>
+
+<p>一旦一个日志项已经应用到状态机中，别的状态机不会应用一个不同的值到该日执行中
++ Raft 安全特性：
+    + 如果一个 leader 已经决定一个日志项 committed，那么该日志项就会出现在未来的 leader 的日志中
++ 这保证了安全性的要求
+    + leaders 不会覆盖自己的日志
+    + 只有 leader 的日志才能 committed
+    + 日志项必须 committed 在应用到状态机之前</p>
+
+<h2 id="选择一个最好的-leader">选择一个最好的 leader</h2>
+
+<ul>
+<li><p>下图中的第5项是无法确定是否已经 committed
+<img src="https://img-blog.csdnimg.cn/20190523201559895.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p></li>
+
+<li><p>在选举期间，选择最有可能包含全部已经 committed 日志的 candidate</p>
+
+<ul>
+<li>candidate 会在 RequestVote RPCs 中包含日志信息(index &amp; 最后一个日志项的 term)</li>
+<li>投票给拥有最完整的日志的 candidate：
+
+<ul>
+<li>(lastTermV &gt; lastTermC) || (lastTermV == lastTermC) &amp;&amp; (lastIndexV &gt; lastIndexC)</li>
+<li>leader 将会在拥有最完整日志的 candidate 中选出来</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<h2 id="在当前-term-commiting-日志项">在当前 term commiting 日志项</h2>
+
+<ul>
+<li>leader 决定在当前 term 的日志项 committed
+<img src="https://img-blog.csdnimg.cn/20190523202230392.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+<li>看上图，term3 的 leader必须包含第4项日志</li>
+</ul>
+
+<h2 id="commiting-之前-term-的日志项">Commiting 之前 term 的日志项</h2>
+
+<ul>
+<li>leader 会尝试完成 commiting 之前 term 的日志项
+<img src="https://img-blog.csdnimg.cn/20190523202643614.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+<li>第3项日志不会安全地 committed：
+
+<ul>
+<li>s5可以被选举为 term5 的 leader</li>
+<li>如果s5称为 leader，它将覆盖在s1、s2、s3的第3项日志</li>
+</ul></li>
+</ul>
+
+<h2 id="新的-commitment-规则">新的 commitment 规则</h2>
+
+<ul>
+<li><p>leader 决定一个日志项是否 committed：</p>
+
+<ul>
+<li>必须已经存储在大部分的服务器上</li>
+<li>最少一个新的日志项在该 leader 的 term 已经存储在大部分</li>
+<li>如下图中的 term4 的 leader
+<img src="https://img-blog.csdnimg.cn/20190523213955957.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul></li>
+
+<li><p>一旦第4项日志 committed：</p>
+
+<ul>
+<li>s5就不能被选为 leader</li>
+<li>第3项和第4项日志就安全了</li>
+</ul></li>
+</ul>
+
+<h2 id="日志不一致">日志不一致</h2>
+
+<ul>
+<li>leader 变更会导致日志的不一致：
+<img src="https://img-blog.csdnimg.cn/20190523214746866.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
+
+<h2 id="复原-follower-的日志">复原 follower 的日志</h2>
+
+<ul>
+<li>新 leader 必须让 follower 的日志与它自己的保持一致
+
+<ul>
+<li>删掉多余的日志</li>
+<li>补充丢失的日志</li>
+</ul></li>
+<li>leader 为其他 follower 持有一个变量 nextIndex：
+
+<ul>
+<li>发送给该 follower 的下一个日志项的 index</li>
+<li>初始化为 (1 + leader 的 最后一个 index)</li>
+</ul></li>
+<li>当 AppendEntries 一致性检查失败了，减小 nextIndex 然后重试
+<img src="https://img-blog.csdnimg.cn/20190523215320820.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></li>
+</ul>
+
+<h2 id="老-leader">老 leader</h2>
+
+<ul>
+<li>老 leader 可能并没有宕机
+
+<ul>
+<li>只是暂时断开网络</li>
+<li>其它服务器选出了一个新的 leader</li>
+<li>老 leader 重新连接上，想要 commit 日志项</li>
+</ul></li>
+<li>Terms 被用来检测过期的 leader(和 candidate)
+
+<ul>
+<li>每个 RPC 的发送者都会包含它自己的 term</li>
+<li>如果发送者的 term 是老的，RPC 就会被拒绝，发送者变为 follower 并且更新自己的 term</li>
+<li>如果接收者的 term 是老的，接收者就变为 follower，并且更新自己的 term，然后正常执行 RPC</li>
+</ul></li>
+<li>选举会更新大部分服务器的 term
+
+<ul>
+<li>老的 leader 就不可以 commit 新的日志项</li>
+</ul></li>
+</ul>
+
+<h2 id="客户协议">客户协议</h2>
+
+<ul>
+<li>发送命令给 leader
+
+<ul>
+<li>如果不知道哪个是 leader，随便联系一个服务器</li>
+<li>如果联系的不是 leader，该服务器会重定向给 leader</li>
+</ul></li>
+<li>leader 不会回应直到命令已经 committed，并且已经在 leader 的状态机中执行了</li>
+<li>如果请求超时(如 leader宕机)：
+
+<ul>
+<li>客户重新发命令给其它服务器</li>
+<li>最终会给到新的 leader</li>
+<li>在新 leader 会重试该请求</li>
+</ul></li>
+</ul>
+
+<h2 id="客户协议的问题">客户协议的问题</h2>
+
+<ul>
+<li>如果 leader 在执行命令之后宕机了，但还没有回应客户
+
+<ul>
+<li>不可以执行两次命令</li>
+</ul></li>
+<li>解决办法：客户给每个命令一个唯一的id
+
+<ul>
+<li>服务器将该 id 包含到日志项中</li>
+<li>在接受命令请求时，leader 先检查它的日志又没有相同的id</li>
+<li>如果有，忽略，返回老命令的结果</li>
+</ul></li>
+<li>结果：只要客户没有宕机就可以实现只有一次语义</li>
+</ul>
+
+<h2 id="配置变更">配置变更</h2>
+
+<ul>
+<li>系统配置：
+
+<ul>
+<li>ID，每个服务器的地址</li>
+<li>大多数的数目</li>
+</ul></li>
+<li>一致性机制必须支持配置变更：
+
+<ul>
+<li>替换坏的机器</li>
+<li>改变复制的数目</li>
+</ul></li>
+</ul>
+
+<h2 id="配置变更的问题">配置变更的问题</h2>
+
+<p>不可以直接从一个配置到另一个配置：大多数的数目会冲突
+<img src="https://img-blog.csdnimg.cn/20190525185710465.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h2 id="共同一致性">共同一致性</h2>
+
+<ul>
+<li>Raft 采用 2-phase 方法：
+
+<ul>
+<li>中间阶段采用共同一致性(需要老和新的配置的大多数来选举和提交)</li>
+<li>配置变更就是一个日志项；无论有没有 committed 都会立即应用</li>
+<li>一旦 共同一致性的日志项 committed，开始为最后的配置复制日志</li>
+</ul></li>
+</ul>
+
+<p><img src="https://img-blog.csdnimg.cn/20190525185747381.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dlc3Ricm9va2xpdQ==,size_16,color_FFFFFF,t_70" alt="" /></p>
+
+<h2 id="共同一致性的问题">共同一致性的问题</h2>
+
+<ul>
+<li>在任何一个配置下的任何服务器都可以充当 leader</li>
+<li>如果当前 leader 不在 Cnew 中，一旦 Cnew committed，就变为 follower</li>
+</ul>
+
+<h2 id="总结">总结</h2>
+
+<ol>
+<li>leader 选举</li>
+<li>正常运行流程</li>
+<li>安全性和一致性</li>
+<li>处理老的 leader</li>
+<li>客户协议</li>
+<li>配置变更</li>
 </ol>
               
             </div>
@@ -259,7 +664,9 @@
                   <div class="post-footer-tags">
                     <span class="text-color-light text-small">TAGGED IN</span><br/>
                     
-  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E9%9D%A2%E7%BB%8F/">面经</a>
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/raft/">Raft</a>
+
+  <a class="tag tag--primary tag--small" href="https://liu-jianhao.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/">分布式系统</a>
 
                   </div>
                 
@@ -272,7 +679,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -280,7 +687,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/" data-tooltip="Linux内核网络源码解析3">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -340,7 +747,7 @@
           
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2018/08/mit6.828%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E5%AE%9E%E9%AA%8C%E4%B9%8B%E5%90%AF%E5%8A%A8pc/" data-tooltip="MIT6.828操作系统实验—之启动PC">
+                <a class="post-action-btn btn btn--disabled">
               
                   <i class="fa fa-angle-left"></i>
                   <span class="hide-xs hide-sm text-small icon-ml">NEXT</span>
@@ -348,7 +755,7 @@
             </li>
             <li class="post-action">
               
-                <a class="post-action-btn btn btn--disabled">
+                <a class="post-action-btn btn btn--default tooltip--top" href="https://liu-jianhao.github.io/2019/05/linux%E5%86%85%E6%A0%B8%E7%BD%91%E7%BB%9C%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%903/" data-tooltip="Linux内核网络源码解析3">
               
                   <span class="hide-xs hide-sm text-small icon-mr">PREVIOUS</span>
                   <i class="fa fa-angle-right"></i>
@@ -682,9 +1089,9 @@ $(document).ready(function() {
     
       <script>
         var disqus_config = function () {
-          this.page.url = 'https:\/\/liu-jianhao.github.io\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/';
+          this.page.url = 'https:\/\/liu-jianhao.github.io\/2019\/05\/raft%E8%AF%A6%E8%A7%A3\/';
           
-            this.page.identifier = '\/2018\/07\/%E9%94%90%E6%98%8E%E7%A7%91%E6%8A%80%E8%BF%88%E7%A7%91%E9%BE%99%E9%9D%A2%E7%BB%8F\/'
+            this.page.identifier = '\/2019\/05\/raft%E8%AF%A6%E8%A7%A3\/'
           
         };
         (function() {
